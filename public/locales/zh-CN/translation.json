@@ -102,6 +102,14 @@
     "Total Success Number": "总成功次数",
 
     "Clients": "客户端",
+    "Client IP": "客户端 IP",
+    "ID": "ID",
+    "Mac Address": "MAC 地址",
+    "Host Name": "主机名",
+    "Last Query Time": "最后查询时间",
+    "Error loading data": "加载数据时出错",
+    "Not implemented yet.": "尚未实现。",
+    "Delete client {{id}} {{client_ip}} successfully.": "删除客户端 {{id}} {{client_ip}} 成功。",
 
     "Server request processing has been suspended, please check whether there is enough disk space.": "服务器请求处理已暂停，请检查是否有足够的磁盘空间。",
 

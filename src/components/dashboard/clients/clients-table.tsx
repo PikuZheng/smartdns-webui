@@ -41,6 +41,12 @@ interface UserApiResponse {
   };
 };
 
+interface PageCursor {
+  pageNumber: number;
+  firstID: number;
+  lastID: number;
+}
+
 function TableClients(): React.JSX.Element {
   const { t } = useTranslation();
 
@@ -107,10 +113,14 @@ function TableClients(): React.JSX.Element {
   const [globalFilter, setGlobalFilter] = useState('');
   const [errorMsg, setErrorMsg] = useState("Error loading data");
   const [sorting, setSorting] = useState<MRTSortingState>([]);
+  const lastPage = React.useRef(0);
+  const pageCursor = React.useRef<PageCursor | null>(null);
   const [pagination, setPagination] = useState<MRTPaginationState>({
     pageIndex: 0,
     pageSize: 10,
   });
+  const [totalRowCount, setTotalRowCount] = useState(0);
+  const totalCountFromParams = React.useRef(false);
   const [tableLocales, setTableLocales] = useState(MRT_Localization_EN);
   const { enqueueSnackbar } = useSnackbar();
   const isActionAlignRight = React.useRef(false);
@@ -161,9 +171,45 @@ function TableClients(): React.JSX.Element {
         'page_size': pagination.pageSize,
       };
 
+      if (totalCountFromParams.current) {
+        totalCountFromParams.current = false;
+        queryParam['total_count'] = totalRowCount;
+      }
+
+      if (pageCursor.current !== null && pageCursor.current !== undefined) {
+        if (currentPageNumber > lastPage.current && currentPageNumber === lastPage.current + 1) {
+          if (pageCursor.current.lastID >= 0) {
+            queryParam['cursor'] = pageCursor.current.lastID;
+            queryParam['total_count'] = totalRowCount;
+            queryParam['cursor_direction'] = 'next';
+          }
+        } else if (currentPageNumber < lastPage.current && currentPageNumber === lastPage.current - 1) {
+          if (pageCursor.current.firstID >= 0) {
+            queryParam['cursor'] = pageCursor.current.firstID;
+            queryParam['total_count'] = totalRowCount;
+            queryParam['cursor_direction'] = 'prev';
+          }
+        }
+      }
+
+      lastPage.current = currentPageNumber;
+
       columnFilters.forEach(filter => {
         if (filter.id === null || filter.id === undefined || filter.value === null || filter.value === undefined) {
           return;
+        }
+
+        if (filter.id === 'last_query_timestamp') {
+          const timerange = filter.value as string[];
+          if (timerange.length === 2) {
+            if (timerange[0]) {
+              queryParam['timestamp_after'] = new Date(timerange[0]).getTime();
+            }
+
+            if (timerange[1]) {
+              queryParam['timestamp_before'] = new Date(timerange[1]).getTime();
+            }
+          }
         }
 
         const filterId = filter.id as keyof QueryClientsParams;
@@ -182,10 +228,23 @@ function TableClients(): React.JSX.Element {
         throw new Error(errorMsg);
       }
 
+      let totalCount = 0;
+      if (data.data.total_count > 0 && data.data.client_list.length > 0) {
+        const newPageCursor: PageCursor = {
+          firstID: data.data.client_list[0].id,
+          lastID: data.data.client_list[data.data.client_list.length - 1].id,
+          pageNumber: currentPageNumber + 1,
+        };
+
+        pageCursor.current = newPageCursor;
+        totalCount = data.data.total_count;
+      }
+
+      setTotalRowCount(totalCount);
       const resp: UserApiResponse = {
         data: data.data.client_list,
         meta: {
-          totalRowCount: data.data.total_count,
+          totalRowCount: totalCount,
         },
       };
 

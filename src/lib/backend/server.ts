@@ -205,12 +205,17 @@ export interface QueryLogsParams {
 
 export interface QueryClientsParams {
     id?: number;
+    order?: string;
     page_num?: number;
     page_size?: number;
     client_ip?: string;
     mac?: string;
     hostname?: string;
-    last_query_timestamp?: number;
+    timestamp_before?: number;
+    timestamp_after?: number;
+    cursor?: number;
+    cursor_direction?: string;
+    total_count?: number;
     [key: string]: unknown;
 }
 
@@ -330,6 +335,18 @@ class SmartDNSAPI {
             getParam = getParam.concat(`id=${param.id}&`);
         }
 
+        if (param.order) {
+            getParam = getParam.concat(`order=${param.order}&`);
+        }
+
+        if (param.page_num) {
+            getParam = getParam.concat(`page_num=${param.page_num}&`);
+        }
+
+        if (param.page_size) {
+            getParam = getParam.concat(`page_size=${param.page_size}&`);
+        }
+
         if (param.client_ip) {
             getParam = getParam.concat(`client_ip=${param.client_ip}&`);
         }
@@ -342,8 +359,24 @@ class SmartDNSAPI {
             getParam = getParam.concat(`hostname=${param.hostname}&`);
         }
 
-        if (param.last_query_timestamp) {
-            getParam = getParam.concat(`last_query_timestamp=${param.last_query_timestamp}&`);
+        if (param.timestamp_before) {
+            getParam = getParam.concat(`timestamp_before=${param.timestamp_before}&`);
+        }
+
+        if (param.timestamp_after) {
+            getParam = getParam.concat(`timestamp_after=${param.timestamp_after}&`);
+        }
+
+        if (param.cursor) {
+            getParam = getParam.concat(`cursor=${param.cursor}&`);
+        }
+
+        if (param.cursor_direction) {
+            getParam = getParam.concat(`cursor_direction=${param.cursor_direction}&`);
+        }
+
+        if (param.total_count) {
+            getParam = getParam.concat(`total_count=${param.total_count}&`);
         }
 
         if (getParam.endsWith('&')) {

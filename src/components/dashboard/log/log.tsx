@@ -10,7 +10,11 @@ import { Stack } from '@mui/system';
 import { smartdnsServer } from '@/lib/backend/server';
 import { useTranslation } from 'react-i18next';
 
-export function LogLevel(): React.JSX.Element {
+export interface LogLevelProps {
+  onLogLevelChange?: (level: string) => void;
+}
+
+export function LogLevel( {onLogLevelChange} : LogLevelProps): React.JSX.Element {
 
   const { t } = useTranslation();
 
@@ -20,16 +24,10 @@ export function LogLevel(): React.JSX.Element {
 
   const setServerLogLevel = React.useCallback(
     async (level: string): Promise<void> => {
-      const data = await smartdnsServer.SetLogLevel(level);
-      if (data.error) {
-        await checkSessionError?.(data.error);
-        setErrorMsg(smartdnsServer.getErrorMessage(data.error));
-        return;
-      }
-
+      onLogLevelChange?.(level);
       setLogLevel(level);
     },
-    [checkSessionError]
+    [onLogLevelChange]
   );
 
   const getServerLogLevel = React.useCallback(
@@ -85,7 +83,7 @@ export function Log(): React.JSX.Element {
   const logRef = React.useRef<LazyLog>(null);
   const textRef = React.useRef<HTMLDivElement>(null);
   const logEndRef = React.useRef<HTMLDivElement>(null);
-  const controlLogRef = React.useRef<((event: number) => void) | null>(null);
+  const controlLogRef = React.useRef<((event: number, data: string) => void) | null>(null);
   const [isPaused, setIsPaused] = React.useState(false);
   const [maxLines, setMaxLines] = React.useState(1000);
   const [logText, setLogText] = React.useState('');
@@ -131,7 +129,7 @@ export function Log(): React.JSX.Element {
       }
     }
 
-    const controlLog = (event: number): void => {
+    const controlLog = (event: number, data: string): void => {
       switch (event) {
         case 1: {
           /* pause */
@@ -141,6 +139,19 @@ export function Log(): React.JSX.Element {
         case 2: {
           /* resume */
           socket.send(new Uint8Array([1, 2]).buffer);
+          break;
+        }
+        case 3: {
+          /* log level */
+          const level = new TextEncoder().encode(data);
+          const buffer = new ArrayBuffer(2 + level.length);
+          const dataview = new DataView(buffer);
+          dataview.setUint8(0, 1);
+          dataview.setUint8(1, 3);
+          for (let i = 0; i < level.length; i++) {
+            dataview.setUint8(2 + i, level[i]);
+          }
+          socket.send(buffer);
           break;
         }
       }
@@ -242,9 +253,9 @@ export function Log(): React.JSX.Element {
     if (controlLogRef.current) {
       setIsPaused(!isPaused);
       if (isPaused) {
-        controlLogRef.current(2);
+        controlLogRef.current(2, '');
       } else {
-        controlLogRef.current(1);
+        controlLogRef.current(1, '');
       }
     }
   };
@@ -263,7 +274,13 @@ export function Log(): React.JSX.Element {
           <Button variant="contained"
             onClick={() => { handleClearLog(); }}
           >{t('Clear')}</Button>
-          <LogLevel />
+          <LogLevel onLogLevelChange={ 
+            (level: string) => {
+              if (controlLogRef.current) {
+                controlLogRef.current(3, level);
+              }
+            }
+          }/>
         </Stack>
       </Box>
       <Box ref={textRef}
