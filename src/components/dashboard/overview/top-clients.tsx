@@ -27,7 +27,7 @@ function TopClientsTable({ clients}: TopClientsProps): React.JSX.Element {
 
   return (
     <Box sx={{ overflowX: 'auto' }}>
-      <Table sx={{ minWidth: 100 }}>
+      <Table sx={{ minWidth: 100 }} size="small">
         <TableHead>
           <TableRow>
             <TableCell>{t('Client')}</TableCell>

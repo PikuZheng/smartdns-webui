@@ -25,7 +25,7 @@ function TopDomainsTable({ domains }: TopDomainsProps): React.JSX.Element {
   const { t } = useTranslation();
   return (
     <Box sx={{ overflowX: 'auto' }}>
-      <Table sx={{ minWidth: 100 }}>
+      <Table sx={{ minWidth: 100 }} size="small">
         <TableHead>
           <TableRow>
             <TableCell>{t('Domain')}</TableCell>

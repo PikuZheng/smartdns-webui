@@ -190,6 +190,7 @@ function TableUpstreamServers(): React.JSX.Element {
     ),
     initialState: {
       showGlobalFilter: true,
+      density: 'compact',
     },
     state: {
       showAlertBanner: isError,

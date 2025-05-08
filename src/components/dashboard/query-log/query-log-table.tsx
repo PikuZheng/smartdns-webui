@@ -521,6 +521,7 @@ function TableQueryLogs(): React.JSX.Element {
       columnPinning: {
         right: isActionAlignRight?.current ? ['mrt-row-actions'] : [],
       },
+      density: 'compact',
     },
     state: {
       columnFilters,

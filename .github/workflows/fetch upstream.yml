@@ -14,8 +14,8 @@ jobs:
         uses: tgymnich/fork-sync@v1.3
         with:
           owner: pymumu
-          base: master
-          head: master
+          base: main
+          head: main
           auto_approve: true
           github_token: ${{ secrets.TOKEN }}
 
