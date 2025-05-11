@@ -28,7 +28,7 @@ const schema = zod.object({
 
 type Values = zod.infer<typeof schema>;
 
-const defaultValues = { username: 'admin', password: 'password' } satisfies Values;
+const defaultValues = { username: '', password: '' } satisfies Values;
 
 async function setupUserSettings(settings: Settings): Promise<void> {
   const user = await authClient.getUser();
