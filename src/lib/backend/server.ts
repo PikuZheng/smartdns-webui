@@ -328,6 +328,10 @@ class SmartDNSAPI {
         return this.server.fetch<null>(`/api/domain/${id}`, 'DELETE', {}, {});
     }
 
+    async FlushCache(): Promise<{ error?: ServerError }> {
+        return this.server.fetch<null>('/api/cache/flush', 'PUT', {}, {});
+    }
+
     async GetClients(param: QueryClientsParams): Promise<{ error?: ServerError, data?: ClientListResponse | null }> {
         let getParam = "";
 

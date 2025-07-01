@@ -13,7 +13,10 @@ import SpeedOutlinedIcon from '@mui/icons-material/SpeedOutlined';
 import MemoryOutlinedIcon from '@mui/icons-material/MemoryOutlined';
 import AdsClickOutlinedIcon from '@mui/icons-material/AdsClickOutlined';
 import AvTimerOutlinedIcon from '@mui/icons-material/AvTimerOutlined';
-import { useTranslation } from 'react-i18next';
+import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
+import { useSnackbar } from 'notistack';
+import { smartdnsServer } from '@/lib/backend/server';
+import { t } from 'i18next';
 
 const totalCards = [
     {
@@ -35,8 +38,8 @@ const totalCards = [
         accessor: 'qps',
         title: 'Query Per Second',
         bgcolor: 'var(--mui-palette-dashboard-chartQueryPerSecond)',
-        render: (value: number | string | boolean, dataIndex: number) => {
-            return <StreamLineChart data={value as number} dataIndex={dataIndex} />
+        render: (value: number | string | boolean, dataIndex?: number) => {
+            return <StreamLineChart data={value as number} dataIndex={dataIndex || 0} />
         },
         icon: SpeedOutlinedIcon,
     },
@@ -53,7 +56,7 @@ const totalCards = [
         accessor: 'cache_number',
         title: 'Cache Number',
         bgcolor: 'var(--mui-palette-dashboard-chartCacheNumber)',
-        render: (value: number | string | boolean, dataIndex: number, cardata: unknown) => {
+        render: (value: number | string | boolean, dataIndex?: number, cardata?: unknown) => {
             if (!cardata || typeof cardata !== 'object') {
                 return <span>{value}</span>
             }
@@ -67,6 +70,29 @@ const totalCards = [
             </Box>
         },
         icon: MemoryOutlinedIcon,
+        actionButton: {
+            icon: DeleteSweepIcon,
+            tooltip: 'Clear Cache',
+            loadingStateKey: 'clearingCache',
+            onClick: (cardMessage: (msg: string) => void, setLoading: (loading: boolean) => void) => {
+                setLoading(true);
+                smartdnsServer.FlushCache().then((res) => {
+                    if (res.error) {
+                        cardMessage(t("Clear Cache Failed"));
+                        setLoading(false);
+                        return;
+                    }
+                    cardMessage(t("Clear Cache Success"));
+                    setLoading(false);
+                }
+
+                ).catch(() => {
+                    cardMessage(t("Clear Cache Failed"));
+                    setLoading(false);
+                });
+            },
+            loading: false,
+        },
     },
     {
         accessor: 'avg_query_time',
@@ -86,7 +112,7 @@ export function MetricsCards(): React.JSX.Element {
     const reconnectTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
     const socketRef = React.useRef<WebSocket | null>(null);
     const doClose = React.useRef<boolean>(false);
-    const { t } = useTranslation();
+    const { enqueueSnackbar } = useSnackbar();
     const [isSuspended, setIsSuspended] = React.useState<boolean>(false);
 
     function close(): void {
@@ -100,6 +126,10 @@ export function MetricsCards(): React.JSX.Element {
             socketRef.current = null;
         }
     }
+
+    const cardMessage = React.useCallback(async (msg: string) => {
+        enqueueSnackbar(msg, { style: { whiteSpace: 'pre-line' } });
+    }, [enqueueSnackbar]);
 
     const connect = React.useCallback((): void => {
         const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
@@ -150,21 +180,23 @@ export function MetricsCards(): React.JSX.Element {
                     <Alert severity="error">{t("Server request processing has been suspended, please check whether there is enough disk space.")}</Alert>
                 </Box>
             </Grid> : null}
-            <Grid container spacing={2} sx={{ height: '100%', width: 'calc(100%)' }}>
-                {totalCards.map((card, _index) => (
-                    <Grid size={{ lg: 4, xl: 2, md: 4, xs: 6 }} key={card.accessor}>
-                        <MetricsCard title={card.title}
-                            isloading={loading}
-                            icon={card.icon}
-                            value={cardata?.[card.accessor] ?? 0}
-                            bgcolor={card.bgcolor}
-                            render={card.render}
-                            dataIndex={dataIndex}
-                            cardata={cardata} />
-                    </Grid>
-                ))
-                }
-            </Grid>
-        </Box>
+                <Grid container spacing={2} sx={{ height: '100%', width: 'calc(100%)' }}>
+                    {totalCards.map((card, _index) => (
+                        <Grid size={{ lg: 4, xl: 2, md: 4, xs: 6 }} key={card.accessor}>
+                            <MetricsCard title={card.title}
+                                isloading={loading}
+                                icon={card.icon}
+                                value={cardata?.[card.accessor] ?? 0}
+                                bgcolor={card.bgcolor}
+                                render={card.render}
+                                dataIndex={dataIndex}
+                                cardata={cardata}
+                                actionButton={card.actionButton}
+                                cardMessage={cardMessage} />
+                        </Grid>
+                    ))
+                    }
+                </Grid>
+        </Box >
     );
 }
