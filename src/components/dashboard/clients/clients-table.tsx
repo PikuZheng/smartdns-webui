@@ -50,6 +50,20 @@ interface PageCursor {
 function TableClients(): React.JSX.Element {
   const { t } = useTranslation();
 
+  const COLUMN_VISIBILITY_KEY = 'clients-table-column-visibility';
+  const savedColumnVisibility = localStorage.getItem(COLUMN_VISIBILITY_KEY);
+  let jsonParsedColumnVisibility: Record<string, boolean> = {};
+  try {
+    if (savedColumnVisibility) {
+      jsonParsedColumnVisibility = JSON.parse(savedColumnVisibility) as Record<string, boolean>;
+    }
+  } catch (e) {
+    localStorage.removeItem(COLUMN_VISIBILITY_KEY);
+    jsonParsedColumnVisibility = {};
+  }
+  const initialColumnVisibility = jsonParsedColumnVisibility ? jsonParsedColumnVisibility : {};
+  const [columnVisibility, setColumnVisibility] = React.useState(initialColumnVisibility);
+
   const columns = useMemo<MRTColumnDef<ClientList>[]>(
     () => [
       {
@@ -355,6 +369,14 @@ function TableClients(): React.JSX.Element {
     },
     onPaginationChange: setPagination,
     onSortingChange: setSorting,
+    onColumnVisibilityChange: (updaterOrValue) => {
+      const newVisibility =
+        typeof updaterOrValue === 'function'
+          ? updaterOrValue(columnVisibility)
+          : updaterOrValue;
+      setColumnVisibility(newVisibility);
+      localStorage.setItem(COLUMN_VISIBILITY_KEY, JSON.stringify(newVisibility));
+    },
     renderTopToolbarCustomActions: () => (
       <Tooltip arrow title={t("Refresh Data")}>
         <span>
@@ -374,7 +396,7 @@ function TableClients(): React.JSX.Element {
     renderRowActionMenuItems: ({ closeMenu, row, table }) => {
       return [
         renderRowMenuItem(closeMenu, row, table),
-      ]
+      ];
     },
     renderCellActionMenuItems: ({ closeMenu, cell, row, table, internalMenuItems }) => {
       return [
@@ -389,6 +411,7 @@ function TableClients(): React.JSX.Element {
     },
     rowCount: meta?.totalRowCount ?? 0,
     initialState: {
+      columnVisibility,
       columnPinning: {
         right: isActionAlignRight?.current ? ['mrt-row-actions'] : [],
       },
@@ -400,6 +423,7 @@ function TableClients(): React.JSX.Element {
       globalFilter,
       isLoading,
       pagination,
+      columnVisibility,
       showAlertBanner: isError,
       showProgressBars: isRefetching,
       showSkeletons: isLoading,

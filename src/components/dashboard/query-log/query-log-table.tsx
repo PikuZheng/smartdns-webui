@@ -433,6 +433,27 @@ function TableQueryLogs(): React.JSX.Element {
   const cssVarMatch = cssVarRegex.exec(theme.palette?.background?.paper ?? '');
   const cssVarName = cssVarMatch ? cssVarMatch[0] : '';
   const baseBackgroundColor = root.getPropertyValue(cssVarName ?? '').trim();
+  const COLUMN_VISIBILITY_KEY = 'querylog-table-column-visibility';
+  const savedColumnVisibility = localStorage.getItem(COLUMN_VISIBILITY_KEY);
+  
+  let jsonParsedColumnVisibility: Record<string, boolean> = {};
+  try {
+    if (savedColumnVisibility) {
+      jsonParsedColumnVisibility = JSON.parse(savedColumnVisibility) as Record<string, boolean>;
+    }
+  } catch (e) {
+    localStorage.removeItem(COLUMN_VISIBILITY_KEY);
+    jsonParsedColumnVisibility = {};
+  }
+  
+  const initialColumnVisibility = jsonParsedColumnVisibility ? jsonParsedColumnVisibility : {
+    "id": false,
+    "is_blocked": false,
+    "domain_group": false,
+    "query_time": false,
+    "reply_code": false,
+  };
+  const [columnVisibility, setColumnVisibility] = React.useState(initialColumnVisibility);
 
   const table = useMaterialReactTable({
     columns,
@@ -476,6 +497,14 @@ function TableQueryLogs(): React.JSX.Element {
     },
     onPaginationChange: setPagination,
     onSortingChange: setSorting,
+    onColumnVisibilityChange: (updaterOrValue) => {
+      const newVisibility =
+        typeof updaterOrValue === 'function'
+          ? updaterOrValue(columnVisibility)
+          : updaterOrValue;
+      setColumnVisibility(newVisibility);
+      localStorage.setItem(COLUMN_VISIBILITY_KEY, JSON.stringify(newVisibility));
+    },
     renderTopToolbarCustomActions: () => (
       <Tooltip arrow title={t("Refresh Data")}>
         <span>
@@ -511,13 +540,7 @@ function TableQueryLogs(): React.JSX.Element {
     },
     rowCount: meta?.totalRowCount ?? 0,
     initialState: {
-      columnVisibility: {
-        'id': false,
-        'is_blocked': false,
-        'domain_group': false,
-        'query_time': false,
-        'reply_code': false,
-      },
+      columnVisibility,
       columnPinning: {
         right: isActionAlignRight?.current ? ['mrt-row-actions'] : [],
       },
@@ -529,6 +552,7 @@ function TableQueryLogs(): React.JSX.Element {
       globalFilter,
       isLoading,
       pagination,
+      columnVisibility,
       showAlertBanner: isError,
       showProgressBars: isRefetching,
       showSkeletons: isLoading,
