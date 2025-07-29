@@ -37,7 +37,7 @@ class DataServer {
             }
 
             return error.error;
-        } catch (_e) {
+        } catch {
             return 'Something went wrong';
         }
     }
@@ -333,141 +333,133 @@ class SmartDNSAPI {
     }
 
     async GetClients(param: QueryClientsParams): Promise<{ error?: ServerError, data?: ClientListResponse | null }> {
-        let getParam = "";
+        const searchParams = new URLSearchParams();
 
         if (param.id) {
-            getParam = getParam.concat(`id=${param.id}&`);
+            searchParams.append('id', param.id.toString());
         }
 
         if (param.order) {
-            getParam = getParam.concat(`order=${param.order}&`);
+            searchParams.append('order', param.order);
         }
 
         if (param.page_num) {
-            getParam = getParam.concat(`page_num=${param.page_num}&`);
+            searchParams.append('page_num', param.page_num.toString());
         }
 
         if (param.page_size) {
-            getParam = getParam.concat(`page_size=${param.page_size}&`);
+            searchParams.append('page_size', param.page_size.toString());
         }
 
         if (param.client_ip) {
-            getParam = getParam.concat(`client_ip=${param.client_ip}&`);
+            searchParams.append('client_ip', param.client_ip);
         }
 
         if (param.mac) {
-            getParam = getParam.concat(`mac=${param.mac}&`);
+            searchParams.append('mac', param.mac);
         }
 
         if (param.hostname) {
-            getParam = getParam.concat(`hostname=${param.hostname}&`);
+            searchParams.append('hostname', param.hostname);
         }
 
         if (param.timestamp_before) {
-            getParam = getParam.concat(`timestamp_before=${param.timestamp_before}&`);
+            searchParams.append('timestamp_before', param.timestamp_before.toString());
         }
 
         if (param.timestamp_after) {
-            getParam = getParam.concat(`timestamp_after=${param.timestamp_after}&`);
+            searchParams.append('timestamp_after', param.timestamp_after.toString());
         }
 
         if (param.cursor) {
-            getParam = getParam.concat(`cursor=${param.cursor}&`);
+            searchParams.append('cursor', param.cursor.toString());
         }
 
         if (param.cursor_direction) {
-            getParam = getParam.concat(`cursor_direction=${param.cursor_direction}&`);
+            searchParams.append('cursor_direction', param.cursor_direction);
         }
 
         if (param.total_count) {
-            getParam = getParam.concat(`total_count=${param.total_count}&`);
+            searchParams.append('total_count', param.total_count.toString());
         }
 
-        if (getParam.endsWith('&')) {
-            getParam = getParam.slice(0, -1);
-        }
-
-        const ret = await this.server.fetch<ClientListResponse>(`/api/client?${getParam}`, 'GET', {}, {});
+        const ret = await this.server.fetch<ClientListResponse>(`/api/client?${searchParams.toString()}`, 'GET', {}, {});
         return ret;
     }
 
     async GetQueryLogs(param: QueryLogsParams): Promise<{ error?: ServerError, data?: QueryLogs | null }> {
 
-        let getParam = "";
+        const searchParams = new URLSearchParams();
 
         if (param.id) {
-            getParam = getParam.concat(`id=${param.id}&`);
+            searchParams.append('id', param.id.toString());
         }
 
         if (param.order) {
-            getParam = getParam.concat(`order=${param.order}&`);
+            searchParams.append('order', param.order);
         }
 
         if (param.page_num) {
-            getParam = getParam.concat(`page_num=${param.page_num}&`);
+            searchParams.append('page_num', param.page_num.toString());
         }
 
         if (param.page_size) {
-            getParam = getParam.concat(`page_size=${param.page_size}&`);
+            searchParams.append('page_size', param.page_size.toString());
         }
 
         if (param.domain) {
-            getParam = getParam.concat(`domain=${param.domain}&`);
+            searchParams.append('domain', param.domain);
         }
 
         if (param.domain_filter_mode) {
-            getParam = getParam.concat(`domain_filter_mode=${param.domain_filter_mode}&`);
+            searchParams.append('domain_filter_mode', param.domain_filter_mode);
         }
 
         if (param.domain_type) {
-            getParam = getParam.concat(`domain_type=${param.domain_type}&`);
+            searchParams.append('domain_type', param.domain_type.toString());
         }
 
         if (param.client) {
-            getParam = getParam.concat(`client=${param.client}&`);
+            searchParams.append('client', param.client);
         }
 
         if (param.domain_group) {
-            getParam = getParam.concat(`domain_group=${param.domain_group}&`);
+            searchParams.append('domain_group', param.domain_group);
         }
 
         if (param.reply_code) {
-            getParam = getParam.concat(`reply_code=${param.reply_code}&`);
+            searchParams.append('reply_code', param.reply_code.toString());
         }
 
         if (param.timestamp_before) {
-            getParam = getParam.concat(`timestamp_before=${param.timestamp_before}&`);
+            searchParams.append('timestamp_before', param.timestamp_before.toString());
         }
 
         if (param.timestamp_after) {
-            getParam = getParam.concat(`timestamp_after=${param.timestamp_after}&`);
+            searchParams.append('timestamp_after', param.timestamp_after.toString());
         }
 
         if (param.is_blocked) {
-            getParam = getParam.concat(`is_blocked=${param.is_blocked}&`);
+            searchParams.append('is_blocked', param.is_blocked.toString());
         }
 
         if (param.is_cached) {
-            getParam = getParam.concat(`is_cached=${param.is_cached}&`);
+            searchParams.append('is_cached', param.is_cached.toString());
         }
 
         if (param.cursor) {
-            getParam = getParam.concat(`cursor=${param.cursor}&`);
+            searchParams.append('cursor', param.cursor.toString());
         }
 
         if (param.cursor_direction) {
-            getParam = getParam.concat(`cursor_direction=${param.cursor_direction}&`);
+            searchParams.append('cursor_direction', param.cursor_direction);
         }
 
         if (param.total_count) {
-            getParam = getParam.concat(`total_count=${param.total_count}&`);
+            searchParams.append('total_count', param.total_count.toString());
         }
 
-        if (getParam.endsWith('&')) {
-            getParam = getParam.slice(0, -1);
-        }
-
-        const ret = await this.server.fetch<QueryLogs>(`/api/domain?${getParam}`, 'GET', {}, {});
+        const ret = await this.server.fetch<QueryLogs>(`/api/domain?${searchParams.toString()}`, 'GET', {}, {});
         return ret;
     }
 

@@ -57,11 +57,11 @@ function TableClients(): React.JSX.Element {
     if (savedColumnVisibility) {
       jsonParsedColumnVisibility = JSON.parse(savedColumnVisibility) as Record<string, boolean>;
     }
-  } catch (e) {
+  } catch {
     localStorage.removeItem(COLUMN_VISIBILITY_KEY);
     jsonParsedColumnVisibility = {};
   }
-  const initialColumnVisibility = jsonParsedColumnVisibility ? jsonParsedColumnVisibility : {};
+  const initialColumnVisibility = jsonParsedColumnVisibility || {};
   const [columnVisibility, setColumnVisibility] = React.useState(initialColumnVisibility);
 
   const columns = useMemo<MRTColumnDef<ClientList>[]>(
@@ -97,7 +97,6 @@ function TableClients(): React.JSX.Element {
       {
         accessorKey: 'last_query_timestamp',
         header: t('Last Query Time'),
-        // eslint-disable-next-line react/no-unstable-nested-components -- ignore
         Cell: ({ cell }) => {
           const timestamp = cell.getValue<string>();
           const localTime = new Date(timestamp).toLocaleString();
@@ -147,13 +146,13 @@ function TableClients(): React.JSX.Element {
     const searchParams = new URLSearchParams(location.search);
     const filters: MRTColumnFiltersState = [];
 
-    searchParams.forEach((value, key) => {
-      if (columns.findIndex((column) => column.accessorKey === key) === -1) {
-        return;
+    for (const [key, value] of searchParams.entries()) {
+      if (!columns.some((column) => column.accessorKey === key) ) {
+        continue;
       }
 
       filters.push({ id: key, value });
-    });
+    }
 
     setColumnFilters(filters);
     if (!shouldFetchData) {
@@ -208,9 +207,9 @@ function TableClients(): React.JSX.Element {
 
       lastPage.current = currentPageNumber;
 
-      columnFilters.forEach(filter => {
+      for (const filter of columnFilters) {
         if (filter.id === null || filter.id === undefined || filter.value === null || filter.value === undefined) {
-          return;
+          continue;
         }
 
         if (filter.id === 'last_query_timestamp') {
@@ -228,7 +227,7 @@ function TableClients(): React.JSX.Element {
 
         const filterId = filter.id as keyof QueryClientsParams;
         queryParam[filterId] = filter.value as string;
-      });
+      }
 
       const data = await smartdnsServer.GetClients(queryParam);
       if (data.error) {
@@ -246,7 +245,7 @@ function TableClients(): React.JSX.Element {
       if (data.data.total_count > 0 && data.data.client_list.length > 0) {
         const newPageCursor: PageCursor = {
           firstID: data.data.client_list[0].id,
-          lastID: data.data.client_list[data.data.client_list.length - 1].id,
+          lastID: data.data.client_list.at(-1)!.id,
           pageNumber: currentPageNumber + 1,
         };
 
@@ -383,7 +382,7 @@ function TableClients(): React.JSX.Element {
           <IconButton
             disabled={isRefetching}
             onClick={() => {
-              refetch().catch((_e: unknown) => {
+              refetch().catch((_error: unknown) => {
                 // NOOP
               });
             }

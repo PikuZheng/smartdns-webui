@@ -146,8 +146,7 @@ function HourlyQueryCountTable({ queryCount, setTitle, setTitleAction }: HourlyQ
         scales: {
           x: {
             reverse: true,
-            ticks: {
-            },
+            ticks: {},
           }
         },
         layout: {

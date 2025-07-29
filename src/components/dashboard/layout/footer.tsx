@@ -28,7 +28,7 @@ function Version(): React.JSX.Element {
       setServerVersion(smartdnsVersion);
       setUiVersion(smartdnsUIVersion);
 
-    }).catch((_err : unknown) => {
+    }).catch((_error: unknown) => {
       // NOOP
     }
     );

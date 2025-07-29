@@ -85,7 +85,6 @@ function TableQueryLogs(): React.JSX.Element {
       {
         accessorKey: 'timestamp',
         header: t('Time'),
-        // eslint-disable-next-line react/no-unstable-nested-components -- ignore
         Cell: ({ cell }) => {
           const timestamp = cell.getValue<string>();
           const localTime = new Date(timestamp).toLocaleString();
@@ -101,7 +100,6 @@ function TableQueryLogs(): React.JSX.Element {
         header: t('Ping'),
         size: 90,
         enableColumnActions: false,
-        // eslint-disable-next-line react/no-unstable-nested-components -- ignore
         Cell: ({ cell }) => {
           const pingTime = cell.getValue<number>();
           if (pingTime < 0) {
@@ -127,7 +125,6 @@ function TableQueryLogs(): React.JSX.Element {
       {
         accessorKey: 'query_time',
         header: t('Query Time'),
-        // eslint-disable-next-line react/no-unstable-nested-components -- ignore
         Cell: ({ cell }) => {
           const queryTime = cell.getValue<number>();
           return <span>{queryTime} ms</span>;
@@ -184,7 +181,7 @@ function TableQueryLogs(): React.JSX.Element {
 
     const timestamp: (dayjs.Dayjs | undefined)[] = [undefined, undefined];
     let existTimestamp = false;
-    searchParams.forEach((value, key) => {
+    for (const [key, value] of searchParams.entries()) {
       if (key === 'timestamp_after') {
         const v = dayjs(Number(value));
         if (v.isValid()) {
@@ -192,7 +189,7 @@ function TableQueryLogs(): React.JSX.Element {
           existTimestamp = true;
         }
 
-        return;
+        continue;
       }
 
       if (key === 'timestamp_before') {
@@ -202,21 +199,21 @@ function TableQueryLogs(): React.JSX.Element {
           existTimestamp = true;
         }
 
-        return;
+        continue;
       }
 
       if (key === 'total_count') {
         totalCountFromParams.current = true;
         setTotalRowCount(Number(value));
-        return;
+        continue;
       }
 
-      if (columns.findIndex((column) => column.accessorKey === key) === -1) {
-        return;
+      if (!columns.some((column) => column.accessorKey === key) ) {
+        continue;
       }
 
       filters.push({ id: key, value });
-    });
+    }
 
     if (existTimestamp) {
       filters.push({ id: 'timestamp', value: timestamp });
@@ -275,9 +272,9 @@ function TableQueryLogs(): React.JSX.Element {
 
       lastPage.current = currentPageNumber;
 
-      columnFilters.forEach(filter => {
+      for (const filter of columnFilters) {
         if (filter.id === null || filter.id === undefined || filter.value === null || filter.value === undefined) {
-          return;
+          continue;
         }
 
         const filterMode = columnFilterFns[filter.id];
@@ -299,7 +296,7 @@ function TableQueryLogs(): React.JSX.Element {
         }
         const filterId = filter.id as keyof QueryLogsParams;
         queryParam[filterId] = filter.value as string;
-      });
+      }
 
       const data = await smartdnsServer.GetQueryLogs(queryParam);
       if (data.error) {
@@ -317,7 +314,7 @@ function TableQueryLogs(): React.JSX.Element {
       if (data.data.total_count > 0 && data.data.domain_list.length > 0) {
         const newPageCursor: PageCursor = {
           firstID: data.data.domain_list[0].id,
-          lastID: data.data.domain_list[data.data.domain_list.length - 1].id,
+          lastID: data.data.domain_list.at(-1)!.id,
           pageNumber: currentPageNumber + 1,
         };
 
@@ -441,12 +438,12 @@ function TableQueryLogs(): React.JSX.Element {
     if (savedColumnVisibility) {
       jsonParsedColumnVisibility = JSON.parse(savedColumnVisibility) as Record<string, boolean>;
     }
-  } catch (e) {
+  } catch {
     localStorage.removeItem(COLUMN_VISIBILITY_KEY);
     jsonParsedColumnVisibility = {};
   }
   
-  const initialColumnVisibility = jsonParsedColumnVisibility ? jsonParsedColumnVisibility : {
+  const initialColumnVisibility = jsonParsedColumnVisibility || {
     "id": false,
     "is_blocked": false,
     "domain_group": false,
@@ -512,7 +509,7 @@ function TableQueryLogs(): React.JSX.Element {
             disabled={isRefetching}
             onClick={() => {
               pageCursor.current = null;
-              refetch().catch((_e: unknown) => {
+              refetch().catch((_error: unknown) => {
                 // NOOP
               });
             }

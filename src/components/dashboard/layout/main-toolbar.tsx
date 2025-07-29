@@ -26,8 +26,8 @@ export function MainToolBar(): React.JSX.Element {
       await checkSession?.();
 
       router.refresh();
-    } catch (err) {
-      logger.error('Sign out error', err);
+    } catch (error) {
+      logger.error('Sign out error', error);
     }
   }, [checkSession, router]);
 

@@ -147,7 +147,7 @@ export function MetricsCards(): React.JSX.Element {
                 if (isSuspended !== data.is_metrics_suspended) {
                     setIsSuspended(data.is_metrics_suspended);
                 }
-            } catch (e) {
+            } catch {
                 // NOOP
             }
         }

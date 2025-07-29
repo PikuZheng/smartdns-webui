@@ -49,7 +49,7 @@ export function LogLevel( {onLogLevelChange} : LogLevelProps): React.JSX.Element
   );
 
   const handleSelect = (event: SelectChangeEvent): void => {
-    setServerLogLevel(event.target.value).catch((_err: unknown) => {
+    setServerLogLevel(event.target.value).catch((_error: unknown) => {
       //NOOP
     });
   }
@@ -117,13 +117,13 @@ export function Log(): React.JSX.Element {
       switch (type) {
         case 0: {
           const msgStr = new TextDecoder().decode(data.slice(2));
-          msgStr.split('\n').forEach((line: string) => {
+          for (const line of msgStr.split('\n')) {
             if (line.length <= 0) {
-              return;
+              continue;
             }
 
             appendLog(`${line}\n`);
-          });
+          }
           break;
         }
       }
@@ -148,8 +148,8 @@ export function Log(): React.JSX.Element {
           const dataview = new DataView(buffer);
           dataview.setUint8(0, 1);
           dataview.setUint8(1, 3);
-          for (let i = 0; i < level.length; i++) {
-            dataview.setUint8(2 + i, level[i]);
+          for (const [i, element] of level.entries()) {
+            dataview.setUint8(2 + i, element);
           }
           socket.send(buffer);
           break;
@@ -193,12 +193,12 @@ export function Log(): React.JSX.Element {
     socket.onerror = () => {
       authClient.checkLogin().then((data) => {
         if (data.error && checkSessionError) {
-          checkSessionError(data.error).catch((_err: unknown) => {
+          checkSessionError(data.error).catch((_error: unknown) => {
             //NOOP
           });
           router.refresh();
         }
-      }).catch((_err: unknown) => {
+      }).catch((_error: unknown) => {
         //NOOP
       });
       appendLog(t('unexpected socket close\n'));

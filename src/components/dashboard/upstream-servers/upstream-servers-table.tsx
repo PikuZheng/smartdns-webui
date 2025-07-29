@@ -30,11 +30,11 @@ function TableUpstreamServers(): React.JSX.Element {
     if (savedColumnVisibility) {
       jsonParsedColumnVisibility = JSON.parse(savedColumnVisibility) as Record<string, boolean>;
     }
-  } catch (e) {
+  } catch {
     localStorage.removeItem(COLUMN_VISIBILITY_KEY);
     jsonParsedColumnVisibility = {};
   }
-  const initialColumnVisibility = jsonParsedColumnVisibility ? jsonParsedColumnVisibility : {};
+  const initialColumnVisibility = jsonParsedColumnVisibility || {};
   const [columnVisibility, setColumnVisibility] = React.useState(initialColumnVisibility);
 
   const columns = useMemo<MRTColumnDef<UpStreamServers>[]>(
@@ -73,7 +73,6 @@ function TableUpstreamServers(): React.JSX.Element {
         header: t('Success Rate'),
         enableSorting: true,
         size: 160,
-        // eslint-disable-next-line react/no-unstable-nested-components -- ignore
         Cell: ({ cell }) => {
           const rate = cell.getValue<number>();
           return <span>{rate} %</span>;
@@ -84,7 +83,6 @@ function TableUpstreamServers(): React.JSX.Element {
         header: t('Avg Time'),
         enableSorting: true,
         size: 140,
-        // eslint-disable-next-line react/no-unstable-nested-components -- ignore
         Cell: ({ cell }) => {
           const avgTime = cell.getValue<number>();
           if (avgTime < 0) {
@@ -147,7 +145,7 @@ function TableUpstreamServers(): React.JSX.Element {
   }, [checkSessionError, t]);
 
   React.useEffect(() => {
-    fetchData().catch((_err: unknown) => {
+    fetchData().catch((_error: unknown) => {
       // NOOP
     });
   }, [fetchData]);

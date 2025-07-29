@@ -84,8 +84,8 @@ export function TopDomainsCard(sx: SxProps): React.JSX.Element {
       setLoading(false);
     };
 
-    fetchData().catch(async (err: unknown) => {
-      await checkSessionError?.(err as ServerError);
+    fetchData().catch(async (error: unknown) => {
+      await checkSessionError?.(error as ServerError);
     });
   }, [checkSessionError]);
 

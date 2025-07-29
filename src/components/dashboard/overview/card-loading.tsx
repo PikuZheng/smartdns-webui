@@ -24,10 +24,10 @@ export function CardLoading({ title, titleAction, children, isLoading, errorMsg 
         <CircularProgress />
       </Box>
         ) : (
-          errorMsg !== null ? (
-            <Box sx={{ p: 2 }}><Alert severity="error">{errorMsg}</Alert></Box>
-          ) : (
+          errorMsg === null ? (
             <Box sx={{ p: 2 }}>{children}</Box>
+          ) : (
+            <Box sx={{ p: 2 }}><Alert severity="error">{errorMsg}</Alert></Box>
           )
         )}
       <Divider />

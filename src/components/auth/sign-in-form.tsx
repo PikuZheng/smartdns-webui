@@ -70,7 +70,7 @@ export function SignInForm(): React.JSX.Element {
         if (settings.data) {
           await setupUserSettings(settings.data);
         }
-      }).catch((_err: unknown) => {
+      }).catch((_error: unknown) => {
         // NOOP
       });
 

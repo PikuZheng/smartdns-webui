@@ -5,6 +5,7 @@ import configPrettier from "eslint-config-prettier";
 import pluginImport from "eslint-plugin-import";
 import pluginReact from "eslint-plugin-react";
 import pluginUnicorn from "eslint-plugin-unicorn";
+import globals from "globals";
 import ts from "typescript-eslint";
 
 const compat = new FlatCompat();
@@ -14,6 +15,10 @@ export default [
   {
     files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"],
     languageOptions: {
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+      },
     },
   },
   js.configs.recommended,
@@ -47,6 +52,7 @@ export default [
       },
     },
   },
+  pluginReact.configs.flat.recommended,
   pluginUnicorn.configs["flat/recommended"],
   {
     rules: {
@@ -54,9 +60,17 @@ export default [
       "unicorn/no-null": "off",
       "unicorn/no-nested-ternary": "off",
       "unicorn/no-array-reduce": "off",
+      "unicorn/expiring-todo-comments": "off",
+      "unicorn/prefer-add-event-listener": "off",
+      "unicorn/numeric-separators-style": "off",
+      "unicorn/prefer-ternary": "off",
+      "unicorn/no-lonely-if": "off",
+      "unicorn/prefer-code-point": "off",
+      "unicorn/prefer-blob-reading-methods": "off",
+      "unicorn/new-for-builtins": "off",
+      "unicorn/prefer-global-this": "off",
     },
   },
-  pluginReact.configs.flat.recommended,
   {
     settings: {
       react: {

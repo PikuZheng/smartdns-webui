@@ -31,7 +31,7 @@ function getTokenData(token: string): { token?: string, error?: string } {
       return { error: "Token expired" };
     }
     return { token: tokenData.token };
-  } catch (_err: unknown) {
+  } catch {
     return { error: "Token invalid" };
   }
 }
@@ -75,7 +75,7 @@ class AuthClient {
     this.loadUserSettings();
     logger.debug('[AuthClient]: start refresh token.');
     this.refreshTokenIntervalId = setInterval(() => {
-      this.refreshTokens().catch(async (_err: unknown) => {
+      this.refreshTokens().catch(async (_error: unknown) => {
         logger.debug('[AuthClient]: start refresh token failed.');
       });
     }, this.refreshTokenInterval);
@@ -144,7 +144,7 @@ class AuthClient {
   }
 
   saveUserSettings(): void {
-    localStorage.setItem('side-nav-visibility', JSON.stringify(Array.from(this.user.sideNavVisibility.entries())));
+    localStorage.setItem('side-nav-visibility', JSON.stringify([...this.user.sideNavVisibility.entries()]));
   }
 
   loadUserSettings(): void {
@@ -155,7 +155,7 @@ class AuthClient {
         if (Array.isArray(parsedVisibility)) {
           this.user.sideNavVisibility = new Map<string, boolean>(parsedVisibility);
         }
-      } catch (_err: unknown) {
+      } catch {
         // NOOP
       }
     }
