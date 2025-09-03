@@ -431,9 +431,14 @@ function TableQueryLogs(): React.JSX.Element {
   const cssVarName = cssVarMatch ? cssVarMatch[0] : '';
   const baseBackgroundColor = root.getPropertyValue(cssVarName ?? '').trim();
   const COLUMN_VISIBILITY_KEY = 'querylog-table-column-visibility';
+  const COLUMN_SIZING_KEY = 'querylog-table-column-sizing';
+  
   const savedColumnVisibility = localStorage.getItem(COLUMN_VISIBILITY_KEY);
+  const savedColumnSizing = localStorage.getItem(COLUMN_SIZING_KEY);
   
   let jsonParsedColumnVisibility: Record<string, boolean> = {};
+  let jsonParsedColumnSizing: Record<string, number> = {};
+  
   try {
     if (savedColumnVisibility) {
       jsonParsedColumnVisibility = JSON.parse(savedColumnVisibility) as Record<string, boolean>;
@@ -441,6 +446,15 @@ function TableQueryLogs(): React.JSX.Element {
   } catch {
     localStorage.removeItem(COLUMN_VISIBILITY_KEY);
     jsonParsedColumnVisibility = {};
+  }
+
+  try {
+    if (savedColumnSizing) {
+      jsonParsedColumnSizing = JSON.parse(savedColumnSizing) as Record<string, number>;
+    }
+  } catch {
+    localStorage.removeItem(COLUMN_SIZING_KEY);
+    jsonParsedColumnSizing = {};
   }
   
   const initialColumnVisibility = jsonParsedColumnVisibility || {
@@ -451,6 +465,7 @@ function TableQueryLogs(): React.JSX.Element {
     "reply_code": false,
   };
   const [columnVisibility, setColumnVisibility] = React.useState(initialColumnVisibility);
+  const [columnSizing, setColumnSizing] = React.useState(jsonParsedColumnSizing);
 
   const table = useMaterialReactTable({
     columns,
@@ -502,6 +517,14 @@ function TableQueryLogs(): React.JSX.Element {
       setColumnVisibility(newVisibility);
       localStorage.setItem(COLUMN_VISIBILITY_KEY, JSON.stringify(newVisibility));
     },
+    onColumnSizingChange: (updaterOrValue) => {
+      const newSizing =
+        typeof updaterOrValue === 'function'
+          ? updaterOrValue(columnSizing)
+          : updaterOrValue;
+      setColumnSizing(newSizing);
+      localStorage.setItem(COLUMN_SIZING_KEY, JSON.stringify(newSizing));
+    },
     renderTopToolbarCustomActions: () => (
       <Tooltip arrow title={t("Refresh Data")}>
         <span>
@@ -538,6 +561,7 @@ function TableQueryLogs(): React.JSX.Element {
     rowCount: meta?.totalRowCount ?? 0,
     initialState: {
       columnVisibility,
+      columnSizing,
       columnPinning: {
         right: isActionAlignRight?.current ? ['mrt-row-actions'] : [],
       },
@@ -550,6 +574,7 @@ function TableQueryLogs(): React.JSX.Element {
       isLoading,
       pagination,
       columnVisibility,
+      columnSizing,
       showAlertBanner: isError,
       showProgressBars: isRefetching,
       showSkeletons: isLoading,

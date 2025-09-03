@@ -24,8 +24,14 @@ function TableUpstreamServers(): React.JSX.Element {
   const [isLoading, setIsLoading] = useState(false);
 
   const COLUMN_VISIBILITY_KEY = 'upstream-servers-table-column-visibility';
+  const COLUMN_SIZING_KEY = 'upstream-servers-table-column-sizing';
+  
   const savedColumnVisibility = localStorage.getItem(COLUMN_VISIBILITY_KEY);
+  const savedColumnSizing = localStorage.getItem(COLUMN_SIZING_KEY);
+  
   let jsonParsedColumnVisibility: Record<string, boolean> = {};
+  let jsonParsedColumnSizing: Record<string, number> = {};
+  
   try {
     if (savedColumnVisibility) {
       jsonParsedColumnVisibility = JSON.parse(savedColumnVisibility) as Record<string, boolean>;
@@ -34,8 +40,19 @@ function TableUpstreamServers(): React.JSX.Element {
     localStorage.removeItem(COLUMN_VISIBILITY_KEY);
     jsonParsedColumnVisibility = {};
   }
+
+  try {
+    if (savedColumnSizing) {
+      jsonParsedColumnSizing = JSON.parse(savedColumnSizing) as Record<string, number>;
+    }
+  } catch {
+    localStorage.removeItem(COLUMN_SIZING_KEY);
+    jsonParsedColumnSizing = {};
+  }
+  
   const initialColumnVisibility = jsonParsedColumnVisibility || {};
   const [columnVisibility, setColumnVisibility] = React.useState(initialColumnVisibility);
+  const [columnSizing, setColumnSizing] = React.useState(jsonParsedColumnSizing);
 
   const columns = useMemo<MRTColumnDef<UpStreamServers>[]>(
     () => [
@@ -208,16 +225,26 @@ function TableUpstreamServers(): React.JSX.Element {
       setColumnVisibility(newVisibility);
       localStorage.setItem(COLUMN_VISIBILITY_KEY, JSON.stringify(newVisibility));
     },
+    onColumnSizingChange: (updaterOrValue) => {
+      const newSizing =
+        typeof updaterOrValue === 'function'
+          ? updaterOrValue(columnSizing)
+          : updaterOrValue;
+      setColumnSizing(newSizing);
+      localStorage.setItem(COLUMN_SIZING_KEY, JSON.stringify(newSizing));
+    },
     initialState: {
       showGlobalFilter: true,
       density: 'compact',
       columnVisibility,
+      columnSizing,
     },
     state: {
       showAlertBanner: isError,
       showProgressBars: isLoading,
       showSkeletons: isLoading,
       columnVisibility,
+      columnSizing,
     },
     mrtTheme: (_theme) => ({
       baseBackgroundColor,

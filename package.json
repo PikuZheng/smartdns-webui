@@ -23,7 +23,7 @@
     "@fontsource/plus-jakarta-sans": "^5.2.6",
     "@fontsource/roboto-mono": "^5.2.6",
     "@hookform/resolvers": "^5.2.0",
-    "@melloware/react-logviewer": "^6.3.1",
+    "@melloware/react-logviewer": "^6.3.4",
     "@mui/icons-material": "^6.4.0",
     "@mui/lab": "6.0.1-beta.36",
     "@mui/material": "^6.5.0",

@@ -51,8 +51,14 @@ function TableClients(): React.JSX.Element {
   const { t } = useTranslation();
 
   const COLUMN_VISIBILITY_KEY = 'clients-table-column-visibility';
+  const COLUMN_SIZING_KEY = 'clients-table-column-sizing';
+  
   const savedColumnVisibility = localStorage.getItem(COLUMN_VISIBILITY_KEY);
+  const savedColumnSizing = localStorage.getItem(COLUMN_SIZING_KEY);
+  
   let jsonParsedColumnVisibility: Record<string, boolean> = {};
+  let jsonParsedColumnSizing: Record<string, number> = {};
+  
   try {
     if (savedColumnVisibility) {
       jsonParsedColumnVisibility = JSON.parse(savedColumnVisibility) as Record<string, boolean>;
@@ -61,8 +67,19 @@ function TableClients(): React.JSX.Element {
     localStorage.removeItem(COLUMN_VISIBILITY_KEY);
     jsonParsedColumnVisibility = {};
   }
+
+  try {
+    if (savedColumnSizing) {
+      jsonParsedColumnSizing = JSON.parse(savedColumnSizing) as Record<string, number>;
+    }
+  } catch {
+    localStorage.removeItem(COLUMN_SIZING_KEY);
+    jsonParsedColumnSizing = {};
+  }
+  
   const initialColumnVisibility = jsonParsedColumnVisibility || {};
   const [columnVisibility, setColumnVisibility] = React.useState(initialColumnVisibility);
+  const [columnSizing, setColumnSizing] = React.useState(jsonParsedColumnSizing);
 
   const columns = useMemo<MRTColumnDef<ClientList>[]>(
     () => [
@@ -376,6 +393,14 @@ function TableClients(): React.JSX.Element {
       setColumnVisibility(newVisibility);
       localStorage.setItem(COLUMN_VISIBILITY_KEY, JSON.stringify(newVisibility));
     },
+    onColumnSizingChange: (updaterOrValue) => {
+      const newSizing =
+        typeof updaterOrValue === 'function'
+          ? updaterOrValue(columnSizing)
+          : updaterOrValue;
+      setColumnSizing(newSizing);
+      localStorage.setItem(COLUMN_SIZING_KEY, JSON.stringify(newSizing));
+    },
     renderTopToolbarCustomActions: () => (
       <Tooltip arrow title={t("Refresh Data")}>
         <span>
@@ -411,6 +436,7 @@ function TableClients(): React.JSX.Element {
     rowCount: meta?.totalRowCount ?? 0,
     initialState: {
       columnVisibility,
+      columnSizing,
       columnPinning: {
         right: isActionAlignRight?.current ? ['mrt-row-actions'] : [],
       },
@@ -423,6 +449,7 @@ function TableClients(): React.JSX.Element {
       isLoading,
       pagination,
       columnVisibility,
+      columnSizing,
       showAlertBanner: isError,
       showProgressBars: isRefetching,
       showSkeletons: isLoading,
