@@ -1,4 +1,4 @@
-import { createInstance } from "i18next";
+import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import detector from "i18next-browser-languagedetector";
 import translationZhCN from '@/../public/locales/zh-CN/translation.json';
@@ -9,8 +9,7 @@ const resources = {
   }
 };
 
-const i18n = createInstance();
-
+// eslint-disable-next-line import/no-named-as-default-member
 void i18n
   .use(detector)
   .use(initReactI18next)
@@ -26,4 +25,5 @@ void i18n
 
   });
 
+// eslint-disable-next-line unicorn/prefer-export-from
 export default i18n;

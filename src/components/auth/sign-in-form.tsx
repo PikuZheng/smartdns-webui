@@ -70,6 +70,12 @@ export function SignInForm(): React.JSX.Element {
         if (settings.data) {
           await setupUserSettings(settings.data);
         }
+        
+        if (settings.error) {
+          setError('root', { type: 'server', message: t(smartdnsServer.getErrorMessage(settings.error)) });
+          setIsPending(false);
+        }
+
       }).catch((_error: unknown) => {
         // NOOP
       });

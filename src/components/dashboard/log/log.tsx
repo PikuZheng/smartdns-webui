@@ -1,6 +1,6 @@
 "use client";
 
-import { Alert, Box, Button, Card, MenuItem, Select, type SelectChangeEvent } from '@mui/material';
+import { Alert, Box, Button, Card, MenuItem, Select, type SelectChangeEvent, useTheme, useMediaQuery } from '@mui/material';
 import * as React from 'react';
 import { LazyLog } from "@melloware/react-logviewer";
 import { authClient } from '@/lib/auth/client';
@@ -82,17 +82,18 @@ export function LogLevel({ onLogLevelChange }: LogLevelProps): React.JSX.Element
 export function Log(): React.JSX.Element {
   const logRef = React.useRef<LazyLog>(null);
   const textRef = React.useRef<HTMLDivElement>(null);
-  const logEndRef = React.useRef<HTMLDivElement>(null);
   const controlLogRef = React.useRef<((event: number, data: string) => void) | null>(null);
   const [logType, setLogType] = React.useState('runlog');
   const [isPaused, setIsPaused] = React.useState(false);
-  const [maxLines, setMaxLines] = React.useState(2000);
+  const maxLines = 2000;
   const [logText, setLogText] = React.useState('');
   const [autoFollow, setAutoFollow] = React.useState(true);
   const { checkSessionError } = useUser();
   const router = useRouter();
   const socketRef = React.useRef<WebSocket | null>(null);
   const { t } = useTranslation();
+  const theme = useTheme();
+  const isLargeScreen = useMediaQuery(theme.breakpoints.up('md')); 
 
   React.useEffect(() => {
     const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
@@ -200,7 +201,6 @@ export function Log(): React.JSX.Element {
 
     socket.onopen = () => {
       appendLog(t('Connected to {{logtype}} stream.\n', { logtype: log_type_message }));
-      setMaxLines(1000);
     };
 
     socket.onerror = () => {
@@ -227,33 +227,7 @@ export function Log(): React.JSX.Element {
         socketRef.current = null;
       }
     }
-  }, [t, maxLines, logType, checkSessionError, router]);
-
-  React.useEffect(() => {
-    logEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, []);
-
-  React.useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent): void => {
-      if (event.ctrlKey && event.key === 'a') {
-        event.preventDefault();
-        if (textRef.current) {
-          const range = document.createRange();
-          range.selectNodeContents(textRef.current);
-          const selection = window.getSelection();
-          if (selection) {
-            selection.removeAllRanges();
-            selection.addRange(range);
-          }
-        }
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, []);
+  }, [t, logType, checkSessionError, router]);
 
   const handleClearLog = (): void => {
     if (logRef.current) {
@@ -293,8 +267,9 @@ export function Log(): React.JSX.Element {
       <Box sx={{
         marginTop: '10px',
         marginLeft: '20px',
+        marginRight: '20px',
       }}>
-        <Stack direction="row" spacing={2}>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
           <Select
             value={logType}
             size="small"
@@ -306,13 +281,16 @@ export function Log(): React.JSX.Element {
             <MenuItem value="auditlog">{t('Audit Log')}</MenuItem>
           </Select>
           <Button variant="contained"
+            size="small"
             onClick={() => { handleButtonClick(); }}
             color={isPaused ? 'secondary' : 'primary'}
           >{isPaused ? t('Resume') : t('Pause')}</Button>
           <Button variant="contained"
+            size="small"
             onClick={() => { handleClearLog(); }}
           >{t('Clear')}</Button>
           <Button variant="contained"
+            size="small"
             onClick={() => { handleCopyLog(); }}
             disabled={!logText.trim()}
           >{t('Copy')}</Button>
@@ -338,10 +316,10 @@ export function Log(): React.JSX.Element {
       >
         <LazyLog
           ref={logRef}
-          enableSearch
-          enableHotKeys
+          enableSearch={isLargeScreen}
           text={logText}
           follow={autoFollow}
+          enableLineNumbers={isLargeScreen}
           onScroll={(scrollInfo) => {
             const { scrollTop, scrollHeight, clientHeight } = scrollInfo;
             const isAtBottom = scrollHeight - scrollTop - clientHeight < 10;
