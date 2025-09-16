@@ -77,8 +77,12 @@ function TableUpstreamServers(): React.JSX.Element {
       {
         accessorKey: 'server_type',
         header: t('Type'),
-        size: 80,
-        enableSorting: false,
+        size: 100,
+      },
+      {
+        accessorKey: 'security',
+        header: t('Security'),
+        size: 148,
       },
       {
         accessorKey: 'status',
@@ -153,6 +157,7 @@ function TableUpstreamServers(): React.JSX.Element {
 
     const translatedData = ret.data.map((item: UpStreamServers) => ({
       ...item,
+      security: t(item.security),
       status: t(item.status),
     }));
 

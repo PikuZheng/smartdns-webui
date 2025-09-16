@@ -217,8 +217,11 @@ export function Log(): React.JSX.Element {
       appendLog(t('unexpected socket close\n'));
     }
 
-    socket.onclose = () => {
+    socket.onclose = (event) => {
       appendLog(t('Disconnected from {{logtype}} stream.\n', { logtype: log_type_message }));
+      if (event.code >= 4001 && event.code <= 4999) {
+        appendLog(t('Error') + " : " + t(event.reason));
+      }
     }
 
     return () => {
@@ -274,6 +277,10 @@ export function Log(): React.JSX.Element {
             value={logType}
             size="small"
             onChange={(event: SelectChangeEvent) => {
+              if (socketRef.current) {
+                socketRef.current.close();
+                socketRef.current = null;
+              }
               setLogType(event.target.value);
             }}
           >

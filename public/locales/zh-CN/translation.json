@@ -104,6 +104,11 @@
     "Unknown": "未知",
     "Normal": "正常",
     "Abnormal": "异常",
+    "Security": "安全性",
+    "Insecure": "不安全",
+    "Secure": "安全",
+    "Verify Failed": "验证失败",
+    "Not Applicable": "不适用",
     "Avg Time": "平均时间",
     "Total Success Number": "总成功次数",
 
@@ -118,6 +123,8 @@
     "Delete client {{id}} {{client_ip}} successfully.": "删除客户端 {{id}} {{client_ip}} 成功。",
 
     "Server request processing has been suspended, please check whether there is enough disk space.": "服务器请求处理已暂停，请检查是否有足够的磁盘空间。",
+
+    "Audit log is not enabled, please set `audit-enable` to `yes` in smartdns config file.": "审计日志未启用，请在smartdns配置文件中将 `audit-enable` 设置为 `yes`。",
 
     "QPS": "查询数",
     

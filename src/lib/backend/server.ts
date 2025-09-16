@@ -260,6 +260,7 @@ export interface UpStreamServers {
     server_type: string;
     avg_time: number;
     status: string;
+    security: string;
     total_query_count: number;
     total_query_recv_count: number;
     total_query_success: number;
