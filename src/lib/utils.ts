@@ -21,3 +21,9 @@ export function size2str(size: number): string {
 
     return `${(size / 1024 / 1024 / 1024 / 1024 / 1024).toFixed(2)}PB`;
 }
+
+export function removeColorCodes (text: string): string {
+    const escapeSequence = String.fromCodePoint(0x1B);
+    const regex = new RegExp(`${escapeSequence}\\[[\\d;]*m`, 'g');
+    return text.replaceAll(regex, '');
+}

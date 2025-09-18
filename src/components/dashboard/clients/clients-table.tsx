@@ -52,12 +52,15 @@ function TableClients(): React.JSX.Element {
 
   const COLUMN_VISIBILITY_KEY = 'clients-table-column-visibility';
   const COLUMN_SIZING_KEY = 'clients-table-column-sizing';
+  const PAGINATION_KEY = 'clients-table-pagination';
   
   const savedColumnVisibility = localStorage.getItem(COLUMN_VISIBILITY_KEY);
   const savedColumnSizing = localStorage.getItem(COLUMN_SIZING_KEY);
+  const savedPagination = localStorage.getItem(PAGINATION_KEY);
   
   let jsonParsedColumnVisibility: Record<string, boolean> = {};
   let jsonParsedColumnSizing: Record<string, number> = {};
+  let jsonParsedPagination: MRTPaginationState = { pageIndex: 0, pageSize: 10 };
   
   try {
     if (savedColumnVisibility) {
@@ -75,6 +78,15 @@ function TableClients(): React.JSX.Element {
   } catch {
     localStorage.removeItem(COLUMN_SIZING_KEY);
     jsonParsedColumnSizing = {};
+  }
+
+  try {
+    if (savedPagination) {
+      jsonParsedPagination = JSON.parse(savedPagination) as MRTPaginationState;
+    }
+  } catch {
+    localStorage.removeItem(PAGINATION_KEY);
+    jsonParsedPagination = { pageIndex: 0, pageSize: 10 };
   }
   
   const initialColumnVisibility = jsonParsedColumnVisibility || {};
@@ -145,10 +157,7 @@ function TableClients(): React.JSX.Element {
   const [sorting, setSorting] = useState<MRTSortingState>([]);
   const lastPage = React.useRef(0);
   const pageCursor = React.useRef<PageCursor | null>(null);
-  const [pagination, setPagination] = useState<MRTPaginationState>({
-    pageIndex: 0,
-    pageSize: 10,
-  });
+  const [pagination, setPagination] = useState<MRTPaginationState>(jsonParsedPagination);
   const [totalRowCount, setTotalRowCount] = useState(0);
   const totalCountFromParams = React.useRef(false);
   const [tableLocales, setTableLocales] = useState(MRT_Localization_EN);
@@ -383,7 +392,14 @@ function TableClients(): React.JSX.Element {
     onGlobalFilterChange: (filters: React.SetStateAction<string>) => {
       setGlobalFilter(filters);
     },
-    onPaginationChange: setPagination,
+    onPaginationChange: (updaterOrValue) => {
+      const newPagination = 
+        typeof updaterOrValue === 'function'
+          ? updaterOrValue(pagination)
+          : updaterOrValue;
+      setPagination(newPagination);
+      localStorage.setItem(PAGINATION_KEY, JSON.stringify(newPagination));
+    },
     onSortingChange: setSorting,
     onColumnVisibilityChange: (updaterOrValue) => {
       const newVisibility =

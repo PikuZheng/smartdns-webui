@@ -9,6 +9,7 @@ import { useUser } from '@/hooks/use-user';
 import { Stack } from '@mui/system';
 import { smartdnsServer } from '@/lib/backend/server';
 import { useTranslation } from 'react-i18next';
+import { removeColorCodes } from '@/lib/utils';
 
 export interface LogLevelProps {
   onLogLevelChange?: (level: string) => void;
@@ -78,22 +79,22 @@ export function LogLevel({ onLogLevelChange }: LogLevelProps): React.JSX.Element
   );
 }
 
-
 export function Log(): React.JSX.Element {
   const logRef = React.useRef<LazyLog>(null);
   const textRef = React.useRef<HTMLDivElement>(null);
   const controlLogRef = React.useRef<((event: number, data: string) => void) | null>(null);
   const [logType, setLogType] = React.useState('runlog');
   const [isPaused, setIsPaused] = React.useState(false);
+  const [lineCount, setLineCount] = React.useState(0);
+  const [notBottomCount, setNotBottomCount] = React.useState(0);
   const maxLines = 2000;
-  const [logText, setLogText] = React.useState('');
   const [autoFollow, setAutoFollow] = React.useState(true);
   const { checkSessionError } = useUser();
   const router = useRouter();
   const socketRef = React.useRef<WebSocket | null>(null);
   const { t } = useTranslation();
   const theme = useTheme();
-  const isLargeScreen = useMediaQuery(theme.breakpoints.up('md')); 
+  const isLargeScreen = useMediaQuery(theme.breakpoints.up('md'));
 
   React.useEffect(() => {
     const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
@@ -107,19 +108,35 @@ export function Log(): React.JSX.Element {
     const socket = new WebSocket(api_url);
     socketRef.current = socket;
 
-    const appendLog = (log: string): void => {
-      setLogText((prev) => {
-        const lines = prev.split('\n');
-        if (lines.length > maxLines) {
-          lines.splice(0, lines.length - maxLines);
+    const appendLog = (color: string, log: string): void => {
+      const colorMap: Record<string, string> = {
+            red: '\u001B[31m',
+            green: '\u001B[32m',
+            yellow: '\u001B[33m',
+            blue: '\u001B[34m',
+            magenta: '\u001B[35m',
+            cyan: '\u001B[36m',
+            white: '\u001B[37m',
+        };
+
+        log = log.replaceAll("\n", "");
+        if (colorMap[color]) {
+            log = `${colorMap[color]}${log}\u001B[0m`;
         }
-        return lines.join('\n') + log;
-      });
+
+      if (logRef.current) {
+        const lines = [log];
+        const count = lines.length;
+        logRef.current.appendLines(lines);
+        logRef.current.state.lines = logRef.current.state.lines.slice(-maxLines);
+        setLineCount(count);
+      }
     }
 
     const processMessage = (data: ArrayBuffer): void => {
       const dataview = new DataView(data);
       let messageOffset = 1;
+      let color = "default";
       if (dataview.byteLength < 2) {
         return;
       }
@@ -127,6 +144,19 @@ export function Log(): React.JSX.Element {
       if (logType === "runlog") {
         const _logLevel = dataview.getUint8(1);
         messageOffset = 2;
+
+        const logLevelMap: Record<number, string> = {
+          0: 'blue',
+          1: 'default',
+          2: 'default',
+          3: 'yellow',
+          4: 'red',
+          5: 'magenta',
+        };
+
+        if (logLevelMap[_logLevel]) {
+          color = logLevelMap[_logLevel];
+        }
       }
       switch (type) {
         case 0: {
@@ -136,7 +166,7 @@ export function Log(): React.JSX.Element {
               continue;
             }
 
-            appendLog(`${line}\n`);
+            appendLog(color, `${line}\n`);
           }
           break;
         }
@@ -172,7 +202,7 @@ export function Log(): React.JSX.Element {
     }
     controlLogRef.current = controlLog;
 
-    appendLog(t('Connecting to {{logtype}} stream....\n', { logtype: log_type_message }));
+    appendLog("white", t('Connecting to {{logtype}} stream....\n', { logtype: log_type_message }));
 
     socket.onmessage = (event: MessageEvent) => {
       let data: ArrayBuffer;
@@ -186,7 +216,7 @@ export function Log(): React.JSX.Element {
           if (result instanceof ArrayBuffer) {
             processMessage(result);
           } else {
-            appendLog("Invalid data type received.\r\n");
+            appendLog("red", "Invalid data type received.\r\n");
             if (socket) {
               socket.close();
             }
@@ -194,13 +224,13 @@ export function Log(): React.JSX.Element {
         };
         reader.readAsArrayBuffer(event.data);
       } else {
-        appendLog("Invalid data type received.\r\n");
+        appendLog("red", "Invalid data type received.\r\n");
         socket.close();
       }
     };
 
     socket.onopen = () => {
-      appendLog(t('Connected to {{logtype}} stream.\n', { logtype: log_type_message }));
+      appendLog("white", t('Connected to {{logtype}} stream.\n', { logtype: log_type_message }));
     };
 
     socket.onerror = () => {
@@ -214,13 +244,13 @@ export function Log(): React.JSX.Element {
       }).catch((_error: unknown) => {
         //NOOP
       });
-      appendLog(t('unexpected socket close\n'));
+      appendLog("red", t('unexpected socket close\n'));
     }
 
     socket.onclose = (event) => {
-      appendLog(t('Disconnected from {{logtype}} stream.\n', { logtype: log_type_message }));
+      appendLog("white", t('Disconnected from {{logtype}} stream.\n', { logtype: log_type_message }));
       if (event.code >= 4001 && event.code <= 4999) {
-        appendLog(t('Error') + " : " + t(event.reason));
+        appendLog("red", t('Error') + " : " + t(event.reason) + "\n");
       }
     }
 
@@ -235,18 +265,26 @@ export function Log(): React.JSX.Element {
   const handleClearLog = (): void => {
     if (logRef.current) {
       logRef.current.clear();
+      setLineCount(0);
     }
-    setLogText('');
   };
 
   const handleCopyLog = async (): Promise<void> => {
+    if (logRef.current === null) {
+      return;
+    }
+    
+    const lines = logRef.current.state.lines?.toArray() ?? [];
+    const decoder = new TextDecoder();
+    const logText = lines.map(arr => decoder.decode(arr)).join('\n');
+    
     try {
       if (logText) {
-        await navigator.clipboard.writeText(logText);
+        await navigator.clipboard.writeText(removeColorCodes(logText));
       }
     } catch {
       const textArea = document.createElement('textarea');
-      textArea.value = logText;
+      textArea.value = removeColorCodes(logText);
       document.body.append(textArea);
       textArea.select();
       document.execCommand('copy');
@@ -299,7 +337,7 @@ export function Log(): React.JSX.Element {
           <Button variant="contained"
             size="small"
             onClick={() => { handleCopyLog(); }}
-            disabled={!logText.trim()}
+            disabled={lineCount === 0}
           >{t('Copy')}</Button>
           {logType === "runlog" && (<LogLevel onLogLevelChange={
             (level: string) => {
@@ -324,17 +362,25 @@ export function Log(): React.JSX.Element {
         <LazyLog
           ref={logRef}
           enableSearch={isLargeScreen}
-          text={logText}
+          // text={logText}
           follow={autoFollow}
+          selectableLines
+          external
           enableLineNumbers={isLargeScreen}
           onScroll={(scrollInfo) => {
             const { scrollTop, scrollHeight, clientHeight } = scrollInfo;
-            const isAtBottom = scrollHeight - scrollTop - clientHeight < 10;
+            const isAtBottom = scrollHeight - scrollTop - clientHeight < 50;
 
             if (isAtBottom) {
               setAutoFollow(true);
+              if (notBottomCount !== 0) {
+                setNotBottomCount(0);
+              }
             } else {
-              setAutoFollow(false);
+              setNotBottomCount((prev) => prev + 1);
+              if (notBottomCount > 3) {
+                setAutoFollow(false);
+              }
             }
           }}
           style={{

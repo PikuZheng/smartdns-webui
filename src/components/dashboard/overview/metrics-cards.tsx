@@ -17,21 +17,25 @@ import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
 import { useSnackbar } from 'notistack';
 import { smartdnsServer } from '@/lib/backend/server';
 import { t } from 'i18next';
+import { AdaptiveNumber } from '@/components/common/adaptive-number';
 
 const totalCards = [
     {
         accessor: 'total_query_count',
         title: 'Total Query Count',
         bgcolor: 'var(--mui-palette-dashboard-chartTotalQueries)',
+        render: (value: number | string | boolean) => (
+            <AdaptiveNumber value={value as number | string} />
+        ),
         icon: TravelExploreOutlinedIcon,
     },
     {
         accessor: 'block_query_count',
         title: 'Blocked Query Count',
         bgcolor: 'var(--mui-palette-dashboard-chartBlockedQueries)',
-        render: (value: number | string | boolean) => {
-            return <span>{value}</span>
-        },
+        render: (value: number | string | boolean) => (
+            <AdaptiveNumber value={value as number | string} />
+        ),
         icon: BlockOutlinedIcon,
     },
     {
@@ -180,23 +184,23 @@ export function MetricsCards(): React.JSX.Element {
                     <Alert severity="error">{t("Server request processing has been suspended, please check whether there is enough disk space.")}</Alert>
                 </Box>
             </Grid> : null}
-                <Grid container spacing={2} sx={{ height: '100%', width: 'calc(100%)' }}>
-                    {totalCards.map((card, _index) => (
-                        <Grid size={{ lg: 4, xl: 2, md: 4, xs: 6 }} key={card.accessor}>
-                            <MetricsCard title={card.title}
-                                isloading={loading}
-                                icon={card.icon}
-                                value={cardata?.[card.accessor] ?? 0}
-                                bgcolor={card.bgcolor}
-                                render={card.render}
-                                dataIndex={dataIndex}
-                                cardata={cardata}
-                                actionButton={card.actionButton}
-                                cardMessage={cardMessage} />
-                        </Grid>
-                    ))
-                    }
-                </Grid>
+            <Grid container spacing={2} sx={{ height: '100%', width: 'calc(100%)' }}>
+                {totalCards.map((card, _index) => (
+                    <Grid size={{ lg: 4, xl: 2, md: 4, xs: 6 }} key={card.accessor}>
+                        <MetricsCard title={card.title}
+                            isloading={loading}
+                            icon={card.icon}
+                            value={cardata?.[card.accessor] ?? 0}
+                            bgcolor={card.bgcolor}
+                            render={card.render}
+                            dataIndex={dataIndex}
+                            cardata={cardata}
+                            actionButton={card.actionButton}
+                            cardMessage={cardMessage} />
+                    </Grid>
+                ))
+                }
+            </Grid>
         </Box >
     );
 }

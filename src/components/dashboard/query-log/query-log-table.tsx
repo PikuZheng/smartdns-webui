@@ -160,9 +160,24 @@ function TableQueryLogs(): React.JSX.Element {
   const [sorting, setSorting] = useState<MRTSortingState>([]);
   const lastPage = React.useRef(0);
   const pageCursor = React.useRef<PageCursor | null>(null);
+  
+  // Load saved pagination settings
+  const PAGINATION_KEY = 'querylog-table-pagination';
+  const savedPagination = localStorage.getItem(PAGINATION_KEY);
+  let jsonParsedPagination: MRTPaginationState = { pageIndex: 0, pageSize: 10 };
+  
+  try {
+    if (savedPagination) {
+      jsonParsedPagination = JSON.parse(savedPagination) as MRTPaginationState;
+    }
+  } catch {
+    localStorage.removeItem(PAGINATION_KEY);
+    jsonParsedPagination = { pageIndex: 0, pageSize: 10 };
+  }
+  
   const [pagination, setPagination] = useState<MRTPaginationState>({
     pageIndex: 0,
-    pageSize: 10,
+    pageSize: jsonParsedPagination.pageSize,
   });
   const [totalRowCount, setTotalRowCount] = useState(0);
   const totalCountFromParams = React.useRef(false);
@@ -507,7 +522,14 @@ function TableQueryLogs(): React.JSX.Element {
       pageCursor.current = null;
       setGlobalFilter(filters);
     },
-    onPaginationChange: setPagination,
+    onPaginationChange: (updaterOrValue) => {
+      const newPagination =
+        typeof updaterOrValue === 'function'
+          ? updaterOrValue(pagination)
+          : updaterOrValue;
+      setPagination(newPagination);
+      localStorage.setItem(PAGINATION_KEY, JSON.stringify(newPagination));
+    },
     onSortingChange: setSorting,
     onColumnVisibilityChange: (updaterOrValue) => {
       const newVisibility =
@@ -566,6 +588,10 @@ function TableQueryLogs(): React.JSX.Element {
         right: isActionAlignRight?.current ? ['mrt-row-actions'] : [],
       },
       density: 'compact',
+      pagination: {
+        pageIndex: 0,
+        pageSize: jsonParsedPagination.pageSize,
+      },
     },
     state: {
       columnFilters,
