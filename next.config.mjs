@@ -15,5 +15,6 @@ const prodConfig = {
 };
 
 const config = process.env.NODE_ENV === 'production' ? prodConfig : devConfig;
+config.typedRoutes = false;
 
 export default config;

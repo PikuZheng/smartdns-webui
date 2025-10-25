@@ -13,6 +13,16 @@ const compat = new FlatCompat();
 /** @type {import('eslint').Linter.Config[]} */
 export default [
   {
+    ignores: [
+      "node_modules/**",
+      "dist/**",
+      "build/**",
+      "out/**",
+      ".next/**",
+      "coverage/**",
+      "public/**",
+      "next-env.d.ts",
+    ],
     files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"],
     languageOptions: {
       globals: {
@@ -82,5 +92,5 @@ export default [
     },
   },
   ...compat.extends("plugin:react-hooks/recommended"),
-  ...compat.config(pluginNext.configs.recommended),
+  pluginNext.configs.recommended,
 ];

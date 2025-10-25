@@ -14,6 +14,10 @@ export interface UserContextValue {
   isLoading: boolean;
   checkSession?: () => Promise<void>;
   checkSessionError?: (error: ServerError) => Promise<void>;
+  setUserKey?: (key: string, value: unknown) => void;
+  // Convenience setters to avoid magic strings at call sites
+  setXtermSocket?: (value: WebSocket | null) => void;
+  setXtermBuff?: (value: unknown) => void;
 }
 
 export const UserContext = React.createContext<UserContextValue | undefined>(undefined);
@@ -46,6 +50,32 @@ export function UserProvider({ children }: UserProviderProps): React.JSX.Element
     }
   }, []);
 
+  const setUserKey = React.useCallback((key: string, value: unknown): void => {
+    setState((prev) => {
+      if (!prev.user) {
+        return prev;
+      }
+
+      return {
+        ...prev,
+        user: {
+          ...prev.user,
+          [key]: value,
+        },
+      };
+    });
+  }, []);
+
+  // Typed convenience wrappers
+  const setXtermSocket = React.useCallback((value: WebSocket | null): void => {
+    setUserKey('xtermSocket', value);
+  }, [setUserKey]);
+
+  const setXtermBuff = React.useCallback((value: unknown): void => {
+    // Keep generic to align with current User index signature
+    setUserKey('xtermBuff', value);
+  }, [setUserKey]);
+
   React.useEffect(() => {
     checkSession().catch((error: unknown) => {
       logger.error(error);
@@ -70,7 +100,7 @@ export function UserProvider({ children }: UserProviderProps): React.JSX.Element
     
   }, [checkSession]);
 
-  return <UserContext.Provider value={{ ...state, checkSession, checkSessionError }}>{children}</UserContext.Provider>;
+  return <UserContext.Provider value={{ ...state, checkSession, checkSessionError, setUserKey, setXtermSocket, setXtermBuff }}>{children}</UserContext.Provider>;
 }
 
 export const UserConsumer = UserContext.Consumer;

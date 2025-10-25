@@ -15,7 +15,8 @@ import {
   type MRT_Cell as MRTCell,
   type MRT_TableInstance as MRTTableInstance,
 } from 'material-react-table';
-import { Card, IconButton, Tooltip, useTheme } from '@mui/material';
+import { Card, IconButton, Tooltip } from '@mui/material';
+import { createTheme, useColorScheme } from '@mui/material/styles';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import {
   QueryClient,
@@ -53,15 +54,15 @@ function TableClients(): React.JSX.Element {
   const COLUMN_VISIBILITY_KEY = 'clients-table-column-visibility';
   const COLUMN_SIZING_KEY = 'clients-table-column-sizing';
   const PAGINATION_KEY = 'clients-table-pagination';
-  
+
   const savedColumnVisibility = localStorage.getItem(COLUMN_VISIBILITY_KEY);
   const savedColumnSizing = localStorage.getItem(COLUMN_SIZING_KEY);
   const savedPagination = localStorage.getItem(PAGINATION_KEY);
-  
+
   let jsonParsedColumnVisibility: Record<string, boolean> = {};
   let jsonParsedColumnSizing: Record<string, number> = {};
   let jsonParsedPagination: MRTPaginationState = { pageIndex: 0, pageSize: 10 };
-  
+
   try {
     if (savedColumnVisibility) {
       jsonParsedColumnVisibility = JSON.parse(savedColumnVisibility) as Record<string, boolean>;
@@ -88,7 +89,7 @@ function TableClients(): React.JSX.Element {
     localStorage.removeItem(PAGINATION_KEY);
     jsonParsedPagination = { pageIndex: 0, pageSize: 10 };
   }
-  
+
   const initialColumnVisibility = jsonParsedColumnVisibility || {};
   const [columnVisibility, setColumnVisibility] = React.useState(initialColumnVisibility);
   const [columnSizing, setColumnSizing] = React.useState(jsonParsedColumnSizing);
@@ -162,18 +163,14 @@ function TableClients(): React.JSX.Element {
   const totalCountFromParams = React.useRef(false);
   const [tableLocales, setTableLocales] = useState(MRT_Localization_EN);
   const { enqueueSnackbar } = useSnackbar();
-  const isActionAlignRight = React.useRef(false);
-
-  if (window.innerWidth >= 1200) {
-    isActionAlignRight.current = true;
-  }
+  const [isActionAlignRight] = React.useState<boolean>(() => typeof window !== 'undefined' && window.innerWidth >= 1200);
 
   React.useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     const filters: MRTColumnFiltersState = [];
 
     for (const [key, value] of searchParams.entries()) {
-      if (!columns.some((column) => column.accessorKey === key) ) {
+      if (!columns.some((column) => column.accessorKey === key)) {
         continue;
       }
 
@@ -347,12 +344,12 @@ function TableClients(): React.JSX.Element {
     ]
   );
 
-  const theme = useTheme();
-  const root = getComputedStyle(document.documentElement);
-  const cssVarRegex = /--[^)]+/;
-  const cssVarMatch = cssVarRegex.exec(theme.palette?.background?.paper ?? '');
-  const cssVarName = cssVarMatch ? cssVarMatch[0] : '';
-  const baseBackgroundColor = root.getPropertyValue(cssVarName ?? '').trim();
+  const { colorScheme } = useColorScheme();
+  const tableTheme = React.useMemo(
+    () => createTheme({ palette: { mode: colorScheme === 'dark' ? 'dark' : 'light' } }),
+    [colorScheme],
+  );
+  const baseBackgroundColor = tableTheme.palette.background.paper;
 
   const table = useMaterialReactTable({
     columns,
@@ -393,7 +390,7 @@ function TableClients(): React.JSX.Element {
       setGlobalFilter(filters);
     },
     onPaginationChange: (updaterOrValue) => {
-      const newPagination = 
+      const newPagination =
         typeof updaterOrValue === 'function'
           ? updaterOrValue(pagination)
           : updaterOrValue;
@@ -454,7 +451,7 @@ function TableClients(): React.JSX.Element {
       columnVisibility,
       columnSizing,
       columnPinning: {
-        right: isActionAlignRight?.current ? ['mrt-row-actions'] : [],
+        right: isActionAlignRight ? ['mrt-row-actions'] : [],
       },
       density: 'compact',
     },

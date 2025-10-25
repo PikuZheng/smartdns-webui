@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from 'react';
-import Grid from '@mui/material/Grid2';
+import Grid from '@mui/material/Grid';
 import { MetricsCard } from '@/components/dashboard/overview/metrics-card';
 import { type Mertrics } from '@/lib/backend/server';
 import { StreamLineChart } from './card-stream-linechart';
@@ -118,6 +118,7 @@ export function MetricsCards(): React.JSX.Element {
     const doClose = React.useRef<boolean>(false);
     const { enqueueSnackbar } = useSnackbar();
     const [isSuspended, setIsSuspended] = React.useState<boolean>(false);
+    const connectRef = React.useRef<() => void>(() => { /* will be set below */ });
 
     function close(): void {
         if (reconnectTimeoutRef.current) {
@@ -148,9 +149,7 @@ export function MetricsCards(): React.JSX.Element {
                 const data = JSON.parse(event.data as string) as Mertrics;
                 setDataIndex(prevIndex => prevIndex + 1);
                 setCardData(data);
-                if (isSuspended !== data.is_metrics_suspended) {
-                    setIsSuspended(data.is_metrics_suspended);
-                }
+                setIsSuspended(data.is_metrics_suspended);
             } catch {
                 // NOOP
             }
@@ -164,13 +163,17 @@ export function MetricsCards(): React.JSX.Element {
 
             reconnectTimeoutRef.current = setTimeout(function reconnect() {
                 close();
-                connect();
+                connectRef.current();
             }, 3000);
         }
-    }, [isSuspended]);
+    }, []);
 
     React.useEffect(() => {
-        connect();
+        connectRef.current = connect;
+    }, [connect]);
+
+    React.useEffect(() => {
+        connectRef.current();
         return (): void => {
             doClose.current = true;
             close();

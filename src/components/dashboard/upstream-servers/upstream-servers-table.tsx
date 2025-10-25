@@ -7,8 +7,9 @@ import {
   useMaterialReactTable,
   type MRT_ColumnDef as MRTColumnDef,
 } from 'material-react-table';
-import { Card, IconButton, Tooltip, useTheme } from '@mui/material';
+import { Card, IconButton, Tooltip } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import { createTheme, useColorScheme } from '@mui/material/styles';
 import { type UpStreamServers, smartdnsServer } from '@/lib/backend/server';
 import { useUser } from '@/hooks/use-user';
 import { useTranslation } from 'react-i18next';
@@ -25,13 +26,13 @@ function TableUpstreamServers(): React.JSX.Element {
 
   const COLUMN_VISIBILITY_KEY = 'upstream-servers-table-column-visibility';
   const COLUMN_SIZING_KEY = 'upstream-servers-table-column-sizing';
-  
+
   const savedColumnVisibility = localStorage.getItem(COLUMN_VISIBILITY_KEY);
   const savedColumnSizing = localStorage.getItem(COLUMN_SIZING_KEY);
-  
+
   let jsonParsedColumnVisibility: Record<string, boolean> = {};
   let jsonParsedColumnSizing: Record<string, number> = {};
-  
+
   try {
     if (savedColumnVisibility) {
       jsonParsedColumnVisibility = JSON.parse(savedColumnVisibility) as Record<string, boolean>;
@@ -49,7 +50,7 @@ function TableUpstreamServers(): React.JSX.Element {
     localStorage.removeItem(COLUMN_SIZING_KEY);
     jsonParsedColumnSizing = {};
   }
-  
+
   const initialColumnVisibility = jsonParsedColumnVisibility || {};
   const [columnVisibility, setColumnVisibility] = React.useState(initialColumnVisibility);
   const [columnSizing, setColumnSizing] = React.useState(jsonParsedColumnSizing);
@@ -131,11 +132,6 @@ function TableUpstreamServers(): React.JSX.Element {
   const { checkSessionError } = useUser();
   const [errorMsg, setErrorMsg] = useState("");
   const [tableLocales, setTableLocales] = useState(MRT_Localization_EN);
-  const isActionAlignRight = React.useRef(false);
-
-  if (window.innerWidth >= 1200) {
-    isActionAlignRight.current = true;
-  }
 
   const fetchData = React.useCallback(async (): Promise<void> => {
     setIsLoading(true);
@@ -185,12 +181,12 @@ function TableUpstreamServers(): React.JSX.Element {
   }, []);
 
 
-  const theme = useTheme();
-  const root = getComputedStyle(document.documentElement);
-  const cssVarRegex = /--[^)]+/;
-  const cssVarMatch = cssVarRegex.exec(theme.palette?.background?.paper ?? '');
-  const cssVarName = cssVarMatch ? cssVarMatch[0] : '';
-  const baseBackgroundColor = root.getPropertyValue(cssVarName ?? '').trim();
+  const { colorScheme } = useColorScheme();
+  const tableTheme = React.useMemo(
+    () => createTheme({ palette: { mode: colorScheme === 'dark' ? 'dark' : 'light' } }),
+    [colorScheme],
+  );
+  const baseBackgroundColor = tableTheme.palette.background.paper;
 
   const table = useMaterialReactTable({
     columns,

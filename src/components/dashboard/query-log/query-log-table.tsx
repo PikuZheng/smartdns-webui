@@ -15,7 +15,8 @@ import {
   type MRT_Cell as MRTCell,
   type MRT_TableInstance as MRTTableInstance,
 } from 'material-react-table';
-import { Card, IconButton, Tooltip, useTheme } from '@mui/material';
+import { Card, IconButton, Tooltip } from '@mui/material';
+import { createTheme, useColorScheme } from '@mui/material/styles';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import dayjs from 'dayjs';
 import {
@@ -160,12 +161,12 @@ function TableQueryLogs(): React.JSX.Element {
   const [sorting, setSorting] = useState<MRTSortingState>([]);
   const lastPage = React.useRef(0);
   const pageCursor = React.useRef<PageCursor | null>(null);
-  
+
   // Load saved pagination settings
   const PAGINATION_KEY = 'querylog-table-pagination';
   const savedPagination = localStorage.getItem(PAGINATION_KEY);
   let jsonParsedPagination: MRTPaginationState = { pageIndex: 0, pageSize: 10 };
-  
+
   try {
     if (savedPagination) {
       jsonParsedPagination = JSON.parse(savedPagination) as MRTPaginationState;
@@ -174,7 +175,7 @@ function TableQueryLogs(): React.JSX.Element {
     localStorage.removeItem(PAGINATION_KEY);
     jsonParsedPagination = { pageIndex: 0, pageSize: 10 };
   }
-  
+
   const [pagination, setPagination] = useState<MRTPaginationState>({
     pageIndex: 0,
     pageSize: jsonParsedPagination.pageSize,
@@ -184,10 +185,10 @@ function TableQueryLogs(): React.JSX.Element {
 
   const [tableLocales, setTableLocales] = useState(MRT_Localization_EN);
   const { enqueueSnackbar } = useSnackbar();
-  const isActionAlignRight = React.useRef(false);
+  let isActionAlignRight = false;
 
   if (window.innerWidth >= 1200) {
-    isActionAlignRight.current = true;
+    isActionAlignRight = true;
   }
 
   React.useEffect(() => {
@@ -223,7 +224,7 @@ function TableQueryLogs(): React.JSX.Element {
         continue;
       }
 
-      if (!columns.some((column) => column.accessorKey === key) ) {
+      if (!columns.some((column) => column.accessorKey === key)) {
         continue;
       }
 
@@ -439,21 +440,22 @@ function TableQueryLogs(): React.JSX.Element {
     ]
   );
 
-  const theme = useTheme();
-  const root = getComputedStyle(document.documentElement);
-  const cssVarRegex = /--[^)]+/;
-  const cssVarMatch = cssVarRegex.exec(theme.palette?.background?.paper ?? '');
-  const cssVarName = cssVarMatch ? cssVarMatch[0] : '';
-  const baseBackgroundColor = root.getPropertyValue(cssVarName ?? '').trim();
+  const { colorScheme } = useColorScheme();
+  const tableTheme = React.useMemo(
+    () => createTheme({ palette: { mode: colorScheme === 'dark' ? 'dark' : 'light' } }),
+    [colorScheme],
+  );
+  const baseBackgroundColor = tableTheme.palette.background.paper;
+
   const COLUMN_VISIBILITY_KEY = 'querylog-table-column-visibility';
   const COLUMN_SIZING_KEY = 'querylog-table-column-sizing';
-  
+
   const savedColumnVisibility = localStorage.getItem(COLUMN_VISIBILITY_KEY);
   const savedColumnSizing = localStorage.getItem(COLUMN_SIZING_KEY);
-  
+
   let jsonParsedColumnVisibility: Record<string, boolean> = {};
   let jsonParsedColumnSizing: Record<string, number> = {};
-  
+
   try {
     if (savedColumnVisibility) {
       jsonParsedColumnVisibility = JSON.parse(savedColumnVisibility) as Record<string, boolean>;
@@ -471,7 +473,7 @@ function TableQueryLogs(): React.JSX.Element {
     localStorage.removeItem(COLUMN_SIZING_KEY);
     jsonParsedColumnSizing = {};
   }
-  
+
   const initialColumnVisibility = jsonParsedColumnVisibility || {
     "id": false,
     "is_blocked": false,
@@ -585,7 +587,7 @@ function TableQueryLogs(): React.JSX.Element {
       columnVisibility,
       columnSizing,
       columnPinning: {
-        right: isActionAlignRight?.current ? ['mrt-row-actions'] : [],
+        right: isActionAlignRight ? ['mrt-row-actions'] : [],
       },
       density: 'compact',
       pagination: {

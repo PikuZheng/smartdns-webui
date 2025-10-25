@@ -46,20 +46,12 @@ export function TerminalTable(): React.JSX.Element {
   const alt = React.useRef(false);
   const [isCtrlPressed, setIsCtrlPressed] = React.useState(false);
   const [isAltPressed, setIsAltPressed] = React.useState(false);
-  const { checkSessionError } = useUser();
+  const { checkSessionError, setXtermSocket, setXtermBuff } = useUser();
   const hasInitialized = React.useRef(false);
   const { t } = useTranslation();
 
-  let { user } = useUser();
-  const displayError = React.useRef(false);
-
-  if (user === null) {
-    displayError.current = true;
-    user = {
-      id: '',
-      sideNavVisibility: new Map<string, boolean>(),
-    };
-  }
+  const { user } = useUser();
+  const isDisplayError = React.useMemo(() => user === null, [user]);
 
   React.useEffect(() => {
     const handleResize = (): void => {
@@ -96,48 +88,15 @@ export function TerminalTable(): React.JSX.Element {
     };
   }, []);
 
-  const actions = [
-    {
-      icon: <SelectAll />, name: t('SELECT ALL'), action: () => {
-        if (!termRef.current) {
-          return;
-        }
+  type ActionId = 'SELECT_ALL' | 'CTRL' | 'ALT' | 'TAB' | 'ESC';
 
-        termRef.current.selectAll();
-      }
-    },
-    {
-      icon: isCtrlPressed ? <CtrlIcon style={{ color: 'red' }} /> : <CtrlIcon />, name: 'CTRL', action: () => {
-        ctrl.current = !ctrl.current;
-        setIsCtrlPressed(ctrl.current);
-      }
-    },
-    {
-      icon: isAltPressed ? <KeyboardOptionKeyIcon style={{ color: 'red' }} /> : <KeyboardOptionKeyIcon />, name: 'ALT', action: () => {
-        alt.current = !alt.current;
-        setIsAltPressed(alt.current);
-      }
-    },
-    {
-      icon: <TabIcon />, name: 'TAB', action: () => {
-        if (!sockRef.current) {
-          return;
-        }
-
-        sockRef.current.send('\t');
-      }
-    },
-    {
-      icon: <TransitEnterexitIcon />, name: 'ESC', action: () => {
-        if (!sockRef.current) {
-          return;
-        }
-
-        sockRef.current.send('\u001B');
-      },
-    }
-
-  ];
+  const actions = React.useMemo(() => [
+    { icon: <SelectAll />, name: t('SELECT ALL'), id: 'SELECT_ALL' as const },
+    { icon: isCtrlPressed ? <CtrlIcon style={{ color: 'red' }} /> : <CtrlIcon />, name: 'CTRL', id: 'CTRL' as const },
+    { icon: isAltPressed ? <KeyboardOptionKeyIcon style={{ color: 'red' }} /> : <KeyboardOptionKeyIcon />, name: 'ALT', id: 'ALT' as const },
+    { icon: <TabIcon />, name: 'TAB', id: 'TAB' as const },
+    { icon: <TransitEnterexitIcon />, name: 'ESC', id: 'ESC' as const },
+  ], [isAltPressed, isCtrlPressed, t]);
 
   const pauseTerm = (): void => {
     const buffer = new ArrayBuffer(1);
@@ -187,11 +146,6 @@ export function TerminalTable(): React.JSX.Element {
   }
 
   React.useEffect(() => {
-
-    if (displayError.current) {
-      return;
-    }
-
     if (hasInitialized.current) {
       return;
     }
@@ -247,15 +201,15 @@ export function TerminalTable(): React.JSX.Element {
     const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
     let refreshWin = false;
 
-    if (user.xtermSocket) {
-      const socket = user.xtermSocket as WebSocket;
+    if (user?.xtermSocket) {
+      const socket = user?.xtermSocket as WebSocket;
       if (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING) {
         sockRef.current = user.xtermSocket as WebSocket;
         refreshWin = true;
         resumeTerm();
       } else {
-        socket.close();
-        user.xtermSocket = null;
+  socket.close();
+  setXtermSocket?.(null);
         term.write("Resume session failed...\r\n");
       }
     }
@@ -264,7 +218,7 @@ export function TerminalTable(): React.JSX.Element {
       term.write(t('Connecting to xterm server...\r\n'));
       const socket = new WebSocket(`${protocol}://${window.location.host}/api/tool/term`);
       sockRef.current = socket;
-      user.xtermSocket = sockRef.current;
+  setXtermSocket?.(sockRef.current);
     }
 
     sockRef.current.onmessage = (event: MessageEvent) => {
@@ -289,8 +243,8 @@ export function TerminalTable(): React.JSX.Element {
         reader.readAsArrayBuffer(event.data);
       } else {
         term.write("Invalid data type received.\r\n");
-        sockRef.current?.close();
-        sockRef.current = null;
+  sockRef.current?.close();
+  sockRef.current = null;
       }
     };
 
@@ -373,20 +327,24 @@ export function TerminalTable(): React.JSX.Element {
         isScrolling = true;
       });
 
+      const handleTerminalTouchStart = (_eventEnd: TouchEvent): void => {
+        // NOOP
+      }
+
+      const handleTerminalTouchMove = (_eventEnd: TouchEvent): void => {
+        // NOOP
+      }
+
+      const handleTerminalTouchEnd = (_eventEnd: TouchEvent): void => {
+        // NOOP
+      }
+
       terminalRef.current?.addEventListener('touchend', (eventEnd: TouchEvent) => {
         eventEnd.preventDefault();
         eventEnd.stopPropagation();
-
-
-        terminalRef.current?.removeEventListener('touchstart', () => {
-          // Noop
-        });
-        terminalRef.current?.removeEventListener('touchmove', () => {
-          // Noop
-        });
-        terminalRef.current?.removeEventListener('touchend', () => {
-          // Noop
-        });
+        terminalRef.current?.removeEventListener('touchstart', handleTerminalTouchStart);
+        terminalRef.current?.removeEventListener('touchmove', handleTerminalTouchMove);
+        terminalRef.current?.removeEventListener('touchend', handleTerminalTouchEnd);
 
         if (!termRef.current) {
           return;
@@ -438,7 +396,7 @@ export function TerminalTable(): React.JSX.Element {
         refreshWinSizeRef.current();
       }
 
-      if (user.xtermBuff) {
+      if (user?.xtermBuff) {
         term.write(user.xtermBuff as Uint8Array);
       }
     }
@@ -450,7 +408,7 @@ export function TerminalTable(): React.JSX.Element {
 
       if (sockRef.current.readyState !== WebSocket.OPEN && sockRef.current.readyState !== WebSocket.CONNECTING) {
         sockRef.current.close();
-        user.xtermSocket = null;
+  setXtermSocket?.(null);
         return;
       }
 
@@ -463,16 +421,16 @@ export function TerminalTable(): React.JSX.Element {
       };
       sockRef.current.onmessage = () => {
         // NOOP
-        if (user.xtermBuff) {
-          user.xtermBuff = null;
+        if (user?.xtermBuff) {
+          setXtermBuff?.(null);
         }
       };
       sockRef.current.onerror = () => {
         // NOOP
       };
       sockRef.current.onclose = () => {
-        sockRef.current = null;
-        user.xtermSocket = null;
+  sockRef.current = null;
+  setXtermSocket?.(null);
       };
     }
 
@@ -480,13 +438,13 @@ export function TerminalTable(): React.JSX.Element {
       socketSetBackgroupd();
       const strXterm = addonserialize.serialize();
       if (strXterm) {
-        user.xtermBuff = strXterm;
+        setXtermBuff?.(strXterm);
       }
       sockRef.current = null;
       hasInitialized.current = false;
       term.dispose();
     }
-  }, [t, checkSessionError, router, user]);
+  }, [t, checkSessionError, router, user, setXtermSocket, setXtermBuff]);
 
   const handleSpeedDialClick = (event: React.MouseEvent<HTMLDivElement>): void => {
     event.preventDefault();
@@ -497,20 +455,50 @@ export function TerminalTable(): React.JSX.Element {
     }
   };
 
-  const handleSpeedDialActionClick = (action: () => void) => (event: React.MouseEvent<HTMLDivElement>): void => {
+  const handleSpeedDialActionClick = (id: ActionId) => (event: React.MouseEvent<HTMLDivElement>): void => {
     event.preventDefault();
     event.stopPropagation();
-    action();
+    switch (id) {
+      case 'SELECT_ALL': {
+        if (termRef.current) {
+          termRef.current.selectAll();
+        }
+        break;
+      }
+      case 'CTRL': {
+        ctrl.current = !ctrl.current;
+        setIsCtrlPressed(ctrl.current);
+        break;
+      }
+      case 'ALT': {
+        alt.current = !alt.current;
+        setIsAltPressed(alt.current);
+        break;
+      }
+      case 'TAB': {
+        if (sockRef.current) {
+          sockRef.current.send('\t');
+        }
+        break;
+      }
+      case 'ESC': {
+        if (sockRef.current) {
+          sockRef.current.send('\u001B');
+        }
+        break;
+      }
+    }
+
     if (termRef.current) {
       termRef.current.focus();
     }
   };
 
-  if (displayError.current) {
-    if (user.xtermSocket) {
+  if (isDisplayError) {
+    if (user?.xtermSocket) {
       const socket = user.xtermSocket as WebSocket;
       socket.close();
-      user.xtermSocket = null;
+      setXtermSocket?.(null);
     }
     return <Alert severity="info">Please Refresh Page.</Alert>;
   }
@@ -534,7 +522,7 @@ export function TerminalTable(): React.JSX.Element {
             key={action.name}
             tooltipTitle={action.name}
             icon={action.icon}
-            onClick={handleSpeedDialActionClick(action.action)}
+            onClick={handleSpeedDialActionClick(action.id)}
           />
         ))}
       </SpeedDial>
