@@ -33,7 +33,7 @@
     "@mui/x-date-pickers": "^8.22.1",
     "@tanstack/react-query": "^5.90.12",
     "@xterm/addon-fit": "^0.12.0-beta.2",
-    "@xterm/addon-serialize": "^0.14.0-beta.135",
+    "@xterm/addon-serialize": "^0.15.0-beta.6",
     "@xterm/addon-web-links": "^0.12.0-beta.135",
     "@xterm/xterm": "^6.0.0",
     "apexcharts": "^5.3.5",
