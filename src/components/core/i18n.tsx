@@ -2,10 +2,14 @@ import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import detector from "i18next-browser-languagedetector";
 import translationZhCN from '@/../public/locales/zh-CN/translation.json';
+import translationDeDE from '@/../public/locales/de-DE/translation.json';
 
 const resources = {
   "zh-CN": {
     translation: translationZhCN,
+  },
+  "de-DE": {
+    translation: translationDeDE,
   }
 };
 

@@ -30,6 +30,7 @@ export function LanguageSwitch({ sx, size }: LanguageSwitchProps): React.JSX.Ele
         <Select onChange={handleChangeLang} value={lang} sx={sx}>
           <MenuItem value="en"><Flag country='gb' height='20px' title='English' /></MenuItem>
           <MenuItem value="zh-CN" ><Flag country='cn' height='20px' title='中文'/></MenuItem>
+          <MenuItem value="de-DE"><Flag country='de' height='20px' title='Deutsch' /></MenuItem>
         </Select>
       </FormControl>
     </NoSsr>
