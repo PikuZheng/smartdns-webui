@@ -92,7 +92,7 @@ function TableQueryLogs(): React.JSX.Element {
           return <span>{localTime}</span>;
         },
         filterVariant: 'datetime-range',
-        columnFilterModeOptions: ['equals'],
+        enableColumnFilterModes: false,
         enableColumnActions: false,
         size: 120,
       },
@@ -100,6 +100,7 @@ function TableQueryLogs(): React.JSX.Element {
         accessorKey: 'ping_time',
         header: t('Ping'),
         size: 90,
+        enableColumnFilter: false,
         enableColumnActions: false,
         Cell: ({ cell }) => {
           const pingTime = cell.getValue<number>();
@@ -108,7 +109,6 @@ function TableQueryLogs(): React.JSX.Element {
           }
           return <span>{pingTime} ms</span>;
         },
-        columnFilterModeOptions: ['equals'],
       },
       {
         accessorKey: 'domain_group',
@@ -149,7 +149,7 @@ function TableQueryLogs(): React.JSX.Element {
           const queryTime = cell.getValue<number>();
           return <span>{queryTime} ms</span>;
         },
-        columnFilterModeOptions: ['equals'],
+        enableColumnFilter: false,
         enableColumnActions: false,
       },
       {
@@ -524,6 +524,7 @@ function TableQueryLogs(): React.JSX.Element {
     manualSorting: true,
     muiFilterDateTimePickerProps: {
       ampm: false,
+      timeSteps: { minutes: 1, },
     },
     muiPaginationProps: {
       disabled: isRefetching,
