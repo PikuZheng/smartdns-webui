@@ -98,6 +98,9 @@ class DataServer {
 export interface TopDomainsResponse {
     domain_top_list: TopDomains[];
 }
+export interface TopDomainsBlockedResponse {
+    domain_top_list: TopDomainsBlocked[];
+}
 
 export interface TopClientsResponse {
     client_top_list: TopClients[];
@@ -129,6 +132,12 @@ export interface TopClients {
 }
 
 export interface TopDomains {
+    domain: string,
+    query_count: number,
+    timestamp_start: number,
+    timestamp_end: number,
+}
+export interface TopDomainsBlocked {
     domain: string,
     query_count: number,
     timestamp_start: number,
@@ -492,6 +501,19 @@ class SmartDNSAPI {
 
     async GetTopDomains(): Promise<{ error?: ServerError, data?: TopDomains[] }> {
         const ret = await this.server.fetch<TopDomainsResponse>('/api/stats/top/domain', 'GET', {}, {});
+        if (ret.error) {
+            return { error: ret.error };
+        }
+
+        if (!ret.data) {
+            return { error: 'No data' };
+        }
+
+        return { data: ret.data.domain_top_list };
+    }
+
+    async GetTopDomainsBlocked(): Promise<{ error?: ServerError, data?: TopDomains[] }> {
+        const ret = await this.server.fetch<TopDomainsResponse>('/api/stats/top/domain_blocked', 'GET', {}, {});
         if (ret.error) {
             return { error: ret.error };
         }

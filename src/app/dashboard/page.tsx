@@ -6,6 +6,7 @@ import Grid from '@mui/material/Grid';
 import { config } from '@/config';
 import { TopClientsCard } from '@/components/dashboard/overview/top-clients';
 import { TopDomainsCard } from '@/components/dashboard/overview/top-domain';
+import { TopDomainsBlockedCard } from '@/components/dashboard/overview/top-domain-blocked';
 import { HourlyQueryCountCard } from '@/components/dashboard/overview/hourly-query-count';
 import { useTranslation } from 'react-i18next';
 import { DailyQueryCountCard } from '@/components/dashboard/overview/daily-query-count';
@@ -71,6 +72,9 @@ export default function Page(): React.JSX.Element {
         </Grid>
         <Grid size={{ lg: 6, md: 12, xs: 12 }}>
           <TopDomainsCard sx={{ height: '100%', width: '100%' }} />
+        </Grid>
+        <Grid size={{ lg: 6, md: 12, xs: 12 }}>
+          <TopDomainsBlockedCard sx={{ height: '100%', width: '100%' }} />
         </Grid>
       </Grid>
     </SnackbarProvider>
