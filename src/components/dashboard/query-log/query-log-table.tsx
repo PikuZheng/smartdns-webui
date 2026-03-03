@@ -634,7 +634,7 @@ function TableQueryLogs(): React.JSX.Element {
           </IconButton>
         </span>
       </Tooltip>
-      <Tooltip arrow title={t("Hide Default Value")}>
+      <Tooltip arrow title={ hideDefaultValue ? t("Show Default Value") : t("Hide Default Value") }>
         <span>
           <IconButton
              onClick={() => {
