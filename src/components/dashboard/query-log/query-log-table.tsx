@@ -82,11 +82,37 @@ function TableQueryLogs(): React.JSX.Element {
             textOverflow: 'ellipsis',
           },
         },
-        Cell: ({ cell, renderedCellValue }) => (
-          <Tooltip title={cell.getValue<string>()} arrow placement="top">
-            <span>{renderedCellValue}</span>
+        Cell: ({ cell, renderedCellValue }) => {
+          const ref = React.useRef<HTMLSpanElement>(null);
+          const [isOpen, setIsOpen] = useState(false);
+          return (
+            <Tooltip
+              title={cell.getValue<string>()} 
+              arrow 
+              placement="top"
+              open={isOpen}
+              onOpen={() =>
+                ref.current &&
+                ref.current.scrollWidth > ref.current.clientWidth &&
+                setIsOpen(true)
+              }
+              onClose={() => setIsOpen(false)}
+            >
+            <span 
+              ref={ref}
+              style={{
+                display: 'inline-block',
+                maxWidth: '100%',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {renderedCellValue}
+            </span>
           </Tooltip>
-        ),
+          );
+        },
       },
       {
         accessorKey: 'domain_type',
@@ -110,11 +136,37 @@ function TableQueryLogs(): React.JSX.Element {
             textOverflow: 'ellipsis',
           },
         },
-        Cell: ({ cell, renderedCellValue }) => (
-          <Tooltip title={cell.getValue<string>()} arrow placement="top">
-            <span>{renderedCellValue}</span>
+        Cell: ({ cell, renderedCellValue }) => {
+          const ref = React.useRef<HTMLSpanElement>(null);
+          const [isOpen, setIsOpen] = useState(false);
+          return (
+            <Tooltip
+              title={cell.getValue<string>()}
+              arrow
+              placement="top"
+              open={isOpen}
+              onOpen={() =>
+                ref.current &&
+                ref.current.scrollWidth > ref.current.clientWidth &&
+                setIsOpen(true)
+              }
+              onClose={() => setIsOpen(false)}
+            >
+            <span 
+              ref={ref}
+              style={{
+                display: 'inline-block',
+                maxWidth: '100%',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {renderedCellValue}
+            </span>
           </Tooltip>
-        ),
+          );
+        },
       },
       {
         accessorKey: 'timestamp',
@@ -634,7 +686,7 @@ function TableQueryLogs(): React.JSX.Element {
           </IconButton>
         </span>
       </Tooltip>
-      <Tooltip arrow title={ hideDefaultValue ? t("Show Default Value") : t("Hide Default Value") }>
+      <Tooltip arrow title={ showDefaultValue ? t("Show Default Value") : t("Hide Default Value") }>
         <span>
           <IconButton
              onClick={() => {
