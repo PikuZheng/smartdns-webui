@@ -18,6 +18,8 @@ import {
 import { Card, IconButton, Tooltip, Chip } from '@mui/material';
 import { createTheme, useColorScheme } from '@mui/material/styles';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import dayjs from 'dayjs';
 import {
   QueryClient,
@@ -52,6 +54,9 @@ interface PageCursor {
 
 function TableQueryLogs(): React.JSX.Element {
   const { t } = useTranslation();
+  const [showDefaultValue, setShowDefaultValue] = React.useState<boolean>(() =>
+    localStorage.getItem('querylog-table-hide-default-value') === 'true'
+  );
 
   const columns = useMemo<MRTColumnDef<DomainList>[]>(
     () => [
@@ -70,6 +75,7 @@ function TableQueryLogs(): React.JSX.Element {
         columnFilterModeOptions: ['contains', 'equals'],
         muiTableBodyCellProps: {
           sx: {
+            display: 'table-cell',
             maxWidth: '360px',
             whiteSpace: 'nowrap',
             overflow: 'hidden',
@@ -97,6 +103,7 @@ function TableQueryLogs(): React.JSX.Element {
         columnFilterModeOptions: ['equals'],
         muiTableBodyCellProps: {
           sx: {
+            display: 'table-cell',
             maxWidth: '330px',
             whiteSpace: 'nowrap',
             overflow: 'hidden',
@@ -143,7 +150,7 @@ function TableQueryLogs(): React.JSX.Element {
         enableColumnActions: false,
         Cell: ({ cell }) => {
           const group = cell.getValue<string>();
-          if (!group || group === 'default') {
+          if (showDefaultValue === false && (!group || group === 'default')) {
             return <span>{t('Default')}</span>;
           }
           return <span>{group}</span>;
@@ -167,7 +174,9 @@ function TableQueryLogs(): React.JSX.Element {
         Cell: ({ cell }) =>
           cell.getValue<boolean>()
             ? <Chip label={t('Blocked')} color="error" size="small" />
-            : <Chip label={t('Allowed')} color="success" size="small" variant="outlined" />,
+            : showDefaultValue === false
+              ? (<Chip label={t('Allowed')} color="success" size="small" variant="outlined" />)
+              : null,
         muiFilterTextFieldProps: {
           sx: {
             '& .MuiInputAdornment-positionEnd': {
@@ -194,7 +203,7 @@ function TableQueryLogs(): React.JSX.Element {
         enableColumnActions: false,
       },
     ],
-    [t],
+    [t, showDefaultValue],
   );
 
   const { checkSessionError } = useUser();
@@ -609,6 +618,7 @@ function TableQueryLogs(): React.JSX.Element {
         });
     },
     renderTopToolbarCustomActions: () => (
+     <div style={{ display: 'flex',  alignItems: 'left', }}>
       <Tooltip arrow title={t("Refresh Data")}>
         <span>
           <IconButton
@@ -624,6 +634,23 @@ function TableQueryLogs(): React.JSX.Element {
           </IconButton>
         </span>
       </Tooltip>
+      <Tooltip arrow title={t("Hide Default Value")}>
+        <span>
+          <IconButton
+             onClick={() => {
+               const next = !showDefaultValue;
+               setShowDefaultValue(next);
+               localStorage.setItem(
+                 'querylog-table-hide-default-value',
+                 String(next)
+               );
+            }}
+          >
+            {showDefaultValue ? <VisibilityIcon /> : <VisibilityOffIcon />}
+          </IconButton>
+        </span>
+      </Tooltip>
+     </div>
     ),
     renderRowActionMenuItems: ({ closeMenu, row, table }) => {
       return [
