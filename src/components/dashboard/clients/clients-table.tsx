@@ -18,6 +18,7 @@ import {
 import { Card, IconButton, Tooltip } from '@mui/material';
 import { createTheme, useColorScheme } from '@mui/material/styles';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import dayjs from 'dayjs';
 import {
   QueryClient,
   QueryClientProvider,
@@ -109,6 +110,7 @@ function TableClients(): React.JSX.Element {
         size: 360,
         enableColumnActions: false,
         columnFilterModeOptions: ['contains', 'equals'],
+        enableSorting: false,
       },
       {
         accessorKey: 'mac',
@@ -116,6 +118,7 @@ function TableClients(): React.JSX.Element {
         size: 240,
         enableColumnActions: false,
         columnFilterModeOptions: ['equals'],
+        enableSorting: false,
       },
       {
         accessorKey: 'hostname',
@@ -123,6 +126,7 @@ function TableClients(): React.JSX.Element {
         size: 250,
         enableColumnActions: false,
         columnFilterModeOptions: ['equals'],
+        enableSorting: false,
       },
       {
         accessorKey: 'last_query_timestamp',
@@ -132,7 +136,8 @@ function TableClients(): React.JSX.Element {
           const localTime = new Date(timestamp).toLocaleString();
           return <span>{localTime}</span>;
         },
-        columnFilterModeOptions: ['equals'],
+        filterVariant: 'datetime-range',
+        enableColumnFilterModes: false,
         enableColumnActions: false,
         size: 120,
       },
@@ -169,7 +174,24 @@ function TableClients(): React.JSX.Element {
     const searchParams = new URLSearchParams(location.search);
     const filters: MRTColumnFiltersState = [];
 
+    const timestamp: (dayjs.Dayjs | undefined)[] = [undefined, undefined];
     for (const [key, value] of searchParams.entries()) {
+      if (key === 'timestamp_after') {
+        const v = dayjs(Number(value));
+        if (v.isValid()) {
+          timestamp[0] = v;
+        }
+        continue;
+      }
+
+      if (key === 'timestamp_before') {
+        const v = dayjs(Number(value));
+        if (v.isValid()) {
+          timestamp[1] = v;
+        }
+        continue;
+      }
+
       if (!columns.some((column) => column.accessorKey === key)) {
         continue;
       }
@@ -250,6 +272,26 @@ function TableClients(): React.JSX.Element {
 
         const filterId = filter.id as keyof QueryClientsParams;
         queryParam[filterId] = filter.value as string;
+      }
+
+      // sorting
+      if (sorting.length > 0) {
+        const sort = sorting[0];
+        if (sort.id === 'id') {
+          queryParam['order'] = sort.desc ? 'desc' : 'asc';
+        }
+
+        if (sort.id === 'last_query_timestamp' && !queryParam['timestamp_before'] && !queryParam['timestamp_after']) {
+          if (sort.id === 'last_query_timestamp') {
+            queryParam['order'] = sort.desc ? 'desc' : 'asc';
+
+            if (sort.desc) {
+              queryParam['timestamp_before'] = Date.now();
+            } else {
+              queryParam['timestamp_after'] = 1;
+            }
+          }
+        }
       }
 
       const data = await smartdnsServer.GetClients(queryParam);
@@ -356,7 +398,7 @@ function TableClients(): React.JSX.Element {
     data,
     localization: tableLocales,
     enableColumnResizing: true,
-    enableSorting: false,
+    enableSorting: true,
     enableColumnOrdering: true,
     enableRowActions: true,
     enableCellActions: true,
