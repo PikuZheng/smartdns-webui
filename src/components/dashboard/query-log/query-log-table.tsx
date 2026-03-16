@@ -528,7 +528,8 @@ function TableQueryLogs(): React.JSX.Element {
     }
 
     enqueueSnackbar(t('Delete query log {{id}} {{domain}} successfully.', { id, domain }), { variant: 'success' });
-  }, [t, enqueueSnackbar]);
+    refetch().catch(() => {});
+  }, [t, enqueueSnackbar, refetch]);
 
   const renderRowMenuItem = (closeMenu: () => void, row: MRTRow<DomainList>, table: MRTTableInstance<DomainList>): React.ReactNode[] => (
     [

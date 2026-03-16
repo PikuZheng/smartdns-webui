@@ -315,9 +315,9 @@ function TableClients(): React.JSX.Element {
       enqueueSnackbar(`${t('Error')}: ${t(smartdnsServer.getErrorMessage(ret.error))}, id: ${id}`, { variant: 'error' });
       return;
     }
-
     enqueueSnackbar(t('Delete client {{id}} {{client_ip}} successfully.', { id, client_ip: clientIP }), { variant: 'success' });
-  }, [t, enqueueSnackbar]);
+    refetch().catch(() => {});
+  }, [t, enqueueSnackbar, refetch]);
 
   const renderRowMenuItem = (closeMenu: () => void, row: MRTRow<ClientList>, table: MRTTableInstance<ClientList>): React.ReactNode[] => (
     [
