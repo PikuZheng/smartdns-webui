@@ -18,6 +18,8 @@ import { useSnackbar } from 'notistack';
 import { smartdnsServer } from '@/lib/backend/server';
 import { t } from 'i18next';
 import { AdaptiveNumber } from '@/components/common/adaptive-number';
+import { CachedDomainsDialog } from './cached-domains-dialog';
+import { BlockedDomainsDialog } from './blocked-domains-dialog';
 
 const totalCards = [
     {
@@ -37,6 +39,7 @@ const totalCards = [
             <AdaptiveNumber value={value as number | string} />
         ),
         icon: BlockOutlinedIcon,
+        onClick: undefined,
     },
     {
         accessor: 'qps',
@@ -97,6 +100,7 @@ const totalCards = [
             },
             loading: false,
         },
+        onClick: undefined,
     },
     {
         accessor: 'avg_query_time',
@@ -113,6 +117,8 @@ export function MetricsCards(): React.JSX.Element {
     const [cardata, setCardData] = React.useState<Mertrics | null>(null);
     const [loading, setLoading] = React.useState<boolean>(true);
     const [dataIndex, setDataIndex] = React.useState<number>(0);
+    const [cacheDialogOpen, setCacheDialogOpen] = React.useState<boolean>(false);
+    const [blockedDialogOpen, setBlockedDialogOpen] = React.useState<boolean>(false);
     const reconnectTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
     const socketRef = React.useRef<WebSocket | null>(null);
     const doClose = React.useRef<boolean>(false);
@@ -135,6 +141,14 @@ export function MetricsCards(): React.JSX.Element {
     const cardMessage = React.useCallback(async (msg: string) => {
         enqueueSnackbar(msg, { style: { whiteSpace: 'pre-line' } });
     }, [enqueueSnackbar]);
+
+    const handleCloseCacheDialog = React.useCallback(() => {
+        setCacheDialogOpen(false);
+    }, []);
+
+    const handleCloseBlockedDialog = React.useCallback(() => {
+        setBlockedDialogOpen(false);
+    }, []);
 
     const connect = React.useCallback((): void => {
         const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
@@ -169,6 +183,20 @@ export function MetricsCards(): React.JSX.Element {
     }, []);
 
     React.useEffect(() => {
+        const blockedCard = totalCards.find(card => card.accessor === 'block_query_count');
+        if (blockedCard) {
+            (blockedCard as { onClick?: () => void }).onClick = () => setBlockedDialogOpen(true);
+        }
+    }, []);
+
+    React.useEffect(() => {
+        const cacheCard = totalCards.find(card => card.accessor === 'cache_number');
+        if (cacheCard) {
+            (cacheCard as { onClick?: () => void }).onClick = () => setCacheDialogOpen(true);
+        }
+    }, []);
+
+    React.useEffect(() => {
         connectRef.current = connect;
     }, [connect]);
 
@@ -193,6 +221,7 @@ export function MetricsCards(): React.JSX.Element {
                         <MetricsCard title={card.title}
                             isloading={loading}
                             icon={card.icon}
+                            onClick={card.onClick ?? undefined}
                             value={cardata?.[card.accessor] ?? 0}
                             bgcolor={card.bgcolor}
                             render={card.render}
@@ -204,6 +233,8 @@ export function MetricsCards(): React.JSX.Element {
                 ))
                 }
             </Grid>
+            <CachedDomainsDialog open={cacheDialogOpen} onClose={handleCloseCacheDialog} />
+            <BlockedDomainsDialog open={blockedDialogOpen} onClose={handleCloseBlockedDialog} />
         </Box >
     );
 }

@@ -13,6 +13,7 @@ interface MetricsCardProps {
     dataIndex: number;
     bgcolor: string;
     cardata: unknown;
+    onClick?: () => void;
     icon?: SvgIconComponent;
     render?: (v: number | string | boolean, dataIdx: number, cardata: unknown) => React.ReactNode;
     actionButton?: {
@@ -24,15 +25,19 @@ interface MetricsCardProps {
 }
 
 
-export function MetricsCard({ title, isloading, icon: Icon, value, bgcolor, render, dataIndex, cardata, actionButton, cardMessage }: MetricsCardProps): React.JSX.Element {
+export function MetricsCard({ title, isloading, icon: Icon, value, bgcolor, render, dataIndex, cardata, actionButton, cardMessage, onClick }: MetricsCardProps): React.JSX.Element {
     const { t } = useTranslation();
     const [isloadingState, setIsLoadingState] = React.useState<boolean>(false);
     return (
-        <Card sx={{
-            bgcolor,
-            color: "var(--mui-palette-dashboard-color)",
-            width: "100%",
-        }}>
+        <Card
+            sx={{
+                cursor: onClick ? 'pointer' : 'default',
+                bgcolor,
+                color: "var(--mui-palette-dashboard-color)",
+                width: "100%",
+            }}
+            onClick={onClick}
+        >
             <CardHeader
                 title={t(title)}
                 sx={{ padding: "10px", margin: "1px", marginBottom: '-10px' }}
@@ -43,7 +48,8 @@ export function MetricsCard({ title, isloading, icon: Icon, value, bgcolor, rend
                     <Tooltip title={t(actionButton.tooltip)}>
                         <IconButton
                             size="small"
-                            onClick={async (_) => {
+                            onClick={async (e) => {
+                                e.stopPropagation();
                                 if (actionButton.onClick && cardMessage) {
                                     actionButton.onClick(cardMessage, setIsLoadingState);
                                 }
