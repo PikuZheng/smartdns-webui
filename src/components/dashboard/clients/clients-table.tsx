@@ -100,7 +100,7 @@ function TableClients(): React.JSX.Element {
       {
         accessorKey: 'id',
         header: t('ID'),
-        size: 110,
+        size: 80,
         enableColumnActions: false,
         columnFilterModeOptions: ['equals'],
       },
@@ -115,7 +115,7 @@ function TableClients(): React.JSX.Element {
       {
         accessorKey: 'mac',
         header: t('Mac Address'),
-        size: 240,
+        size: 140,
         enableColumnActions: false,
         columnFilterModeOptions: ['equals'],
         enableSorting: false,
@@ -139,7 +139,7 @@ function TableClients(): React.JSX.Element {
         filterVariant: 'datetime-range',
         enableColumnFilterModes: false,
         enableColumnActions: false,
-        size: 120,
+        size: 160,
       },
     ],
     [t],

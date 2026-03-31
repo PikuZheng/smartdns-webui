@@ -179,7 +179,7 @@ function TableQueryLogs(): React.JSX.Element {
         filterVariant: 'datetime-range',
         enableColumnFilterModes: false,
         enableColumnActions: false,
-        size: 120,
+        size: 160,
       },
       {
         accessorKey: 'ping_time',
@@ -211,7 +211,7 @@ function TableQueryLogs(): React.JSX.Element {
       {
         accessorKey: 'is_blocked',
         header: t('Is Blocked'),
-        size: 150,
+        size: 100,
         filterVariant: 'select',
         enableColumnFilterModes: false,
         filterSelectOptions: [
@@ -241,6 +241,7 @@ function TableQueryLogs(): React.JSX.Element {
       {
         accessorKey: 'query_time',
         header: t('Query Time'),
+        size: 100,
         Cell: ({ cell }) => {
           const queryTime = cell.getValue<number>();
           return <span>{queryTime} ms</span>;
@@ -251,6 +252,7 @@ function TableQueryLogs(): React.JSX.Element {
       {
         accessorKey: 'reply_code',
         header: t('Reply Code'),
+        size: 100,
         columnFilterModeOptions: ['equals'],
         enableColumnActions: false,
       },

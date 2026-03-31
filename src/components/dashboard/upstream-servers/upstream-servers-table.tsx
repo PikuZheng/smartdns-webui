@@ -78,12 +78,12 @@ function TableUpstreamServers(): React.JSX.Element {
       {
         accessorKey: 'server_type',
         header: t('Type'),
-        size: 100,
+        size: 80,
       },
       {
         accessorKey: 'security',
         header: t('Security'),
-        size: 148,
+        size: 110,
       },
       {
         accessorKey: 'status',
@@ -94,7 +94,7 @@ function TableUpstreamServers(): React.JSX.Element {
         accessorKey: 'query_success_rate',
         header: t('Success Rate'),
         enableSorting: true,
-        size: 160,
+        size: 100,
         Cell: ({ cell }) => {
           const rate = cell.getValue<number>();
           return <span>{rate} %</span>;
@@ -104,7 +104,7 @@ function TableUpstreamServers(): React.JSX.Element {
         accessorKey: 'avg_time',
         header: t('Avg Time'),
         enableSorting: true,
-        size: 140,
+        size: 100,
         Cell: ({ cell }) => {
           const avgTime = cell.getValue<number>();
           if (avgTime < 0) {
@@ -117,13 +117,13 @@ function TableUpstreamServers(): React.JSX.Element {
         accessorKey: 'total_query_count',
         header: t('Total Query Count'),
         enableSorting: true,
-        size: 200,
+        size: 120,
       },
       {
         accessorKey: 'total_query_success',
         header: t('Total Success Number'),
         enableSorting: true,
-        size: 220,
+        size: 120,
       },
     ],
     [t],
