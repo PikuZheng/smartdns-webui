@@ -547,7 +547,7 @@ function TableQueryLogs(): React.JSX.Element {
     enableColumnOrdering: true,
     enableRowActions: true,
     enableCellActions: true,
-    enableClickToCopy: window.isSecureContext,
+    enableClickToCopy: false,
     enableGlobalFilter: false,
     columnFilterDisplayMode: 'popover',
     enableColumnFilterModes: true,

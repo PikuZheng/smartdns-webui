@@ -197,7 +197,7 @@ function TableUpstreamServers(): React.JSX.Element {
     enableColumnActions: false,
     enableColumnFilters: false,
     enableSorting: true,
-    enableClickToCopy: window.isSecureContext,
+    enableClickToCopy: false,
     enableGlobalFilter: true,
     enableColumnFilterModes: false,
     enableColumnPinning: true,
