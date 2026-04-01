@@ -17,6 +17,43 @@ interface CachedDomainsDialogProps {
     onClose: () => void;
 }
 
+type EllipsisTooltipProps = {
+    title: React.ReactNode;
+    children: React.ReactNode;
+};
+
+function EllipsisTooltip({ title, children }: EllipsisTooltipProps) {
+    const ref = React.useRef<HTMLSpanElement | null>(null);
+    const [open, setOpen] = React.useState(false);
+    return (
+        <Tooltip
+            title={title}
+            arrow
+            open={open}
+            onOpen={() => {
+                const el = ref.current;
+                if (el && el.scrollWidth > el.clientWidth) {
+                    setOpen(true);
+                }
+            }}
+            onClose={() => setOpen(false)}
+        >
+            <span
+                ref={ref}
+                style={{
+                    display: 'block',
+                    width: '100%',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                }}
+            >
+                {children}
+            </span>
+        </Tooltip>
+    );
+}
+
 export const CachedDomainsDialog = React.memo(function CachedDomainsDialog({ open, onClose }: CachedDomainsDialogProps): React.JSX.Element {
     const { enqueueSnackbar } = useSnackbar();
     const [domainList, setDomainList] = React.useState<CachedDomainInfo[]>([]);
@@ -177,16 +214,16 @@ export const CachedDomainsDialog = React.memo(function CachedDomainsDialog({ ope
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {paginatedDomains.map((item, index) => (
+                                {paginatedDomains.map((item) => (
                                     <TableRow key={item.id}>
                                         <TableCell sx={{ width: '8%', whiteSpace: 'nowrap' }}>
-                                            {index + 1 + (page - 1) * rowsPerPage}
+                                            {item.id}
                                         </TableCell>
-                                        <Tooltip title={item.domain} arrow>
-                                            <TableCell sx={{ width: '48%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                        <TableCell sx={{ width: '48%' }}>
+                                            <EllipsisTooltip title={item.domain}>
                                                 {item.domain}
-                                            </TableCell>
-                                        </Tooltip>
+                                            </EllipsisTooltip>
+                                        </TableCell>
                                         <TableCell sx={{ width: '10%', whiteSpace: 'nowrap' }}>{item.qtype}</TableCell>
                                         <TableCell sx={{ width: '20%', whiteSpace: 'nowrap' }}>
                                             {new Date(item.cached_time * 1000).toLocaleString()}
