@@ -215,7 +215,7 @@ export const CachedDomainsDialog = React.memo(function CachedDomainsDialog({ ope
                             </TableHead>
                             <TableBody>
                                 {paginatedDomains.map((item) => (
-                                    <TableRow key={item.id}>
+                                    <TableRow key={`${item.id}-${order}-${orderBy}`}>
                                         <TableCell sx={{ width: '8%', whiteSpace: 'nowrap' }}>
                                             {item.id}
                                         </TableCell>
