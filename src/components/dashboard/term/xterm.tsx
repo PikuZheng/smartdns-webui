@@ -1,7 +1,5 @@
 "use client";
 
-/* eslint-disable import/named -- The named imports from '@xterm/*' are correct but ESLint is unable to resolve them */
-
 import * as React from 'react';
 
 import { Terminal } from '@xterm/xterm';
