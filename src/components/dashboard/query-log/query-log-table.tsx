@@ -72,7 +72,7 @@ function TableQueryLogs(): React.JSX.Element {
         header: t('Domain'),
         size: 360,
         enableColumnActions: false,
-        columnFilterModeOptions: ['contains', 'equals'],
+        columnFilterModeOptions: ['contains', 'equals', 'notEmpty', 'startwith', 'endwith'],
         muiTableBodyCellProps: {
           sx: {
             display: 'table-cell',
@@ -411,8 +411,11 @@ function TableQueryLogs(): React.JSX.Element {
         }
 
         const filterMode = columnFilterFns[filter.id];
-        if (filter.id === 'domain' && filterMode === 'contains') {
-          queryParam['domain_filter_mode'] = filterMode as string;
+        if (filter.id === 'domain') {
+          const supportedModes = ['contains', 'equals', 'notEmpty', 'startwith', 'endwith'];
+          if (supportedModes.includes(filterMode)) {
+            queryParam['domain_filter_mode'] = filterMode as string;
+          }
         }
 
         if (filter.id === 'timestamp') {
