@@ -72,7 +72,7 @@ function TableQueryLogs(): React.JSX.Element {
         header: t('Domain'),
         size: 360,
         enableColumnActions: false,
-        columnFilterModeOptions: ['contains', 'equals', 'notEmpty', 'startwith', 'endwith'],
+        columnFilterModeOptions: ['contains', 'equals', 'notEmpty', 'startsWith', 'endsWith'],
         muiTableBodyCellProps: {
           sx: {
             display: 'table-cell',
@@ -733,6 +733,8 @@ function TableQueryLogs(): React.JSX.Element {
       columnPinning: {
         right: isActionAlignRight ? ['mrt-row-actions'] : [],
       },
+      columnFilters: [ { id: 'domain', value: '' } ],
+      columnFilterFns: { domain: 'notEmpty' },
       density: 'compact',
       pagination: {
         pageIndex: 0,
