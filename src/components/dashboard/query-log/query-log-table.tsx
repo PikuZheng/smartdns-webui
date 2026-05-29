@@ -733,7 +733,6 @@ function TableQueryLogs(): React.JSX.Element {
       columnPinning: {
         right: isActionAlignRight ? ['mrt-row-actions'] : [],
       },
-      columnFilterFns: { domain: 'contains' },
       density: 'compact',
       pagination: {
         pageIndex: 0,
