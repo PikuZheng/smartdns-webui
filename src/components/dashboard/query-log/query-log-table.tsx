@@ -268,7 +268,7 @@ function TableQueryLogs(): React.JSX.Element {
     useState<MRTColumnFilterFnsState>(
       () => Object.fromEntries(
         columns.map(({ accessorKey }) => {
-          return [accessorKey, 'equals'];
+          return [accessorKey, accessorKey === 'domain' ? 'contains' : 'equals'];
         })
       ) as MRTColumnFilterFnsState
     );
@@ -412,7 +412,7 @@ function TableQueryLogs(): React.JSX.Element {
 
         const filterMode = columnFilterFns[filter.id];
         if (filter.id === 'domain') {
-          const supportedModes = ['contains', 'equals', 'notEmpty', 'startwith', 'endwith'];
+          const supportedModes = ['contains', 'equals', 'notEmpty', 'startsWith', 'endsWith'];
           if (supportedModes.includes(filterMode)) {
             queryParam['domain_filter_mode'] = filterMode as string;
           }
@@ -637,7 +637,10 @@ function TableQueryLogs(): React.JSX.Element {
         children: errorMsg,
       }
       : undefined,
-    onColumnFilterFnsChange: setColumnFilterFns,
+    onColumnFilterFnsChange: (updaterOrValue) => {
+      pageCursor.current = null;
+      setColumnFilterFns(updaterOrValue);
+    },
     onColumnFiltersChange: (filters) => {
       pageCursor.current = null;
       setColumnFilters(filters);
