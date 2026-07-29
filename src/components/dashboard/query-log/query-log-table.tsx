@@ -36,7 +36,7 @@ import { MRT_Localization_ZH_HANS } from 'material-react-table/locales/zh-Hans';
 import i18n from '@/components/core/i18n';
 import { Delete, Domain } from '@mui/icons-material';
 import { type SnackbarOrigin, SnackbarProvider, useSnackbar } from 'notistack';
-import { getDomainTypeName } from './domain-type';
+import { getDomainTypeName, getDomainTypeId } from './domain-type';
 
 
 interface UserApiResponse {
@@ -440,7 +440,17 @@ function TableQueryLogs(): React.JSX.Element {
           }
         }
         const filterId = filter.id as keyof QueryLogsParams;
-        queryParam[filterId] = filter.value as string;
+        if (filter.id === 'domain_type') {
+          const raw = filter.value as string;
+          const resolved = /^\d+$/.test(raw)
+            ? Number(raw)
+            : getDomainTypeId(raw.toUpperCase());
+          if (resolved !== undefined) {
+            queryParam[filterId] = String(resolved);
+          }
+        } else {
+          queryParam[filterId] = filter.value as string;
+        }
       }
 
       const data = await smartdnsServer.GetQueryLogs(queryParam);
