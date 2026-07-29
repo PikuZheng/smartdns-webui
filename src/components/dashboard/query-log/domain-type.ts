@@ -52,3 +52,13 @@ const domainTypeMap: Record<number, string> = {
 export function getDomainTypeName(type: number): string {
   return domainTypeMap[type] ?? `UNKNOWN(${type})`;
 }
+
+// reverse the ID - type name mapping for lookups
+const domainTypeNameMap: Record<string, number> = Object.fromEntries(
+  Object.entries(domainTypeMap).map(([id, name]) => [name, Number(id)]),
+);
+
+// find ID by type name。
+export function getDomainTypeId(name: string): number | undefined {
+  return domainTypeNameMap[name.toUpperCase()];
+}
